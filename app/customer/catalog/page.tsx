@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from "react"
+import React, { Suspense, useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Filter, Search, ShoppingCart } from "lucide-react"
@@ -23,7 +23,7 @@ type Product = {
   packaging: string
 }
 
-export default function CustomerCatalogPage() {
+function CustomerCatalogContent() {
   const searchParams = useSearchParams()
   const initialSearch = searchParams.get("search") || ""
   const [searchTerm, setSearchTerm] = useState(initialSearch)
@@ -165,5 +165,13 @@ export default function CustomerCatalogPage() {
         ))}
       </div>
     </div>
+  )
+}
+
+export default function CustomerCatalogPage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-6xl px-4 py-6 space-y-6" />}>
+      <CustomerCatalogContent />
+    </Suspense>
   )
 }
