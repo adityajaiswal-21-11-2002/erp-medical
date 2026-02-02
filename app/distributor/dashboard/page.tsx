@@ -1,3 +1,4 @@
+"use client"
 import React, { useEffect, useState } from "react"
 import { AlertTriangle, Boxes, IndianRupee, PackageCheck } from "lucide-react"
 import { api } from "@/lib/api"
