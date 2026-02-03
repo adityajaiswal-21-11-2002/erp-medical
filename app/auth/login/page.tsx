@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AuthCard } from "@/components/auth-card"
 import { PasswordInput } from "@/components/password-input"
@@ -28,6 +28,13 @@ export default function LoginPage() {
   const { login } = useAuth()
   const [otpPhone, setOtpPhone] = useState("")
   const [otpValue, setOtpValue] = useState("")
+  const [redirectPath, setRedirectPath] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (redirectPath) {
+      window.location.assign(redirectPath)
+    }
+  }, [redirectPath])
 
   const defaultRole =
     (searchParams.get("role") as "admin" | "retailer" | "distributor" | "customer") || "retailer"
@@ -74,7 +81,7 @@ export default function LoginPage() {
       }
       login({ token: accessToken, user })
       toast.success("Welcome back")
-      // Full page navigation so the app rehydrates with new auth (avoids stale state on login → logout → login)
+      // Full page navigation via effect so the app rehydrates with new auth (avoids stale state on login → logout → login)
       const path =
         requiredAccountType === "ADMIN"
           ? "/admin/dashboard"
@@ -83,7 +90,7 @@ export default function LoginPage() {
             : requiredAccountType === "CUSTOMER"
               ? "/customer"
               : "/retailer/dashboard"
-      window.location.href = path
+      setRedirectPath(path)
     } catch (error: any) {
       const isNetworkError =
         error?.code === "ERR_NETWORK" ||
