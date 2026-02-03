@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { useAuth } from "@/app/auth-context"
 import { useRouter } from "next/navigation"
 import {
@@ -47,20 +47,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useTheme } from "@/app/theme-provider"
+import { api } from "@/lib/api"
 
-const menuItems = [
-  { title: 'Dashboard', icon: Home, href: '/retailer/dashboard', id: 'dashboard' },
-  { title: 'Complete KYC', icon: FileText, href: '/retailer/kyc', id: 'kyc', badge: 'Pending' },
-  { title: 'Catalog', icon: Package, href: '/retailer/catalog', id: 'catalog' },
-  { title: 'Cart', icon: ShoppingCart, href: '/retailer/cart', id: 'cart' },
-  { title: 'Orders', icon: Zap, href: '/retailer/orders', id: 'orders' },
-  { title: 'Returns', icon: RotateCcw, href: '/retailer/returns', id: 'returns' },
-  { title: 'Schemes & Coupons', icon: Gift, href: '/retailer/schemes', id: 'schemes' },
-  { title: 'Loyalty', icon: Users, href: '/retailer/loyalty', id: 'loyalty' },
-  { title: 'Payments', icon: CreditCard, href: '/retailer/payments', id: 'payments' },
-  { title: 'Affiliate', icon: Users, href: '/retailer/affiliate', id: 'affiliate' },
-  { title: 'Support', icon: Headphones, href: '/retailer/support', id: 'support' },
-  { title: 'Profile', icon: User, href: '/retailer/profile', id: 'profile' },
+const baseMenuItems = [
+  { title: 'Dashboard', icon: Home, href: '/retailer/dashboard', id: 'dashboard' as const },
+  { title: 'Complete KYC', icon: FileText, href: '/retailer/kyc', id: 'kyc' as const },
+  { title: 'Catalog', icon: Package, href: '/retailer/catalog', id: 'catalog' as const },
+  { title: 'Cart', icon: ShoppingCart, href: '/retailer/cart', id: 'cart' as const },
+  { title: 'Orders', icon: Zap, href: '/retailer/orders', id: 'orders' as const },
+  { title: 'Returns', icon: RotateCcw, href: '/retailer/returns', id: 'returns' as const },
+  { title: 'Schemes & Coupons', icon: Gift, href: '/retailer/schemes', id: 'schemes' as const },
+  { title: 'Loyalty', icon: Users, href: '/retailer/loyalty', id: 'loyalty' as const },
+  { title: 'Payments', icon: CreditCard, href: '/retailer/payments', id: 'payments' as const },
+  { title: 'Affiliate', icon: Users, href: '/retailer/affiliate', id: 'affiliate' as const },
+  { title: 'Support', icon: Headphones, href: '/retailer/support', id: 'support' as const },
+  { title: 'Profile', icon: User, href: '/retailer/profile', id: 'profile' as const },
 ]
 
 export function RetailerLayout({ children }: { children: React.ReactNode }) {
@@ -68,6 +69,29 @@ export function RetailerLayout({ children }: { children: React.ReactNode }) {
   const { isDark, setTheme } = useTheme()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
+  const [kycStatus, setKycStatus] = useState<'NOT_STARTED' | 'PENDING' | 'APPROVED' | 'REJECTED' | null>(null)
+
+  useEffect(() => {
+    const fetchKyc = async () => {
+      try {
+        const res = await api.get('/api/kyc/status')
+        const status = res.data?.data?.kycStatus || 'NOT_STARTED'
+        setKycStatus(status)
+      } catch {
+        setKycStatus('NOT_STARTED')
+      }
+    }
+    fetchKyc().catch(() => undefined)
+  }, [])
+
+  const menuItems = useMemo(() => {
+    return baseMenuItems.map((item) => {
+      if (item.id !== 'kyc') return { ...item, badge: undefined as string | undefined }
+      if (kycStatus === 'APPROVED') return { ...item, badge: undefined }
+      if (kycStatus === 'REJECTED') return { ...item, badge: 'Rejected' as string }
+      return { ...item, badge: 'Pending' as string }
+    })
+  }, [kycStatus])
 
   const initials = useMemo(() => {
     const name = user?.name || "Retailer"

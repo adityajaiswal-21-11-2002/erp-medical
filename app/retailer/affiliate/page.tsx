@@ -1,7 +1,5 @@
 'use client'
 
-import { AuthGate } from '@/components/auth-gate'
-import { RetailerLayout } from '@/components/retailer-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -51,9 +49,7 @@ export default function AffiliatePage() {
   }, [])
 
   return (
-    <AuthGate requiredAccountType="RETAILER">
-      <RetailerLayout>
-        <div className="space-y-6">
+    <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Affiliate Program</h1>
             <p className="text-muted-foreground mt-2">Earn commission by referring other retailers</p>
@@ -222,7 +218,5 @@ export default function AffiliatePage() {
             </CardContent>
           </Card>
         </div>
-      </RetailerLayout>
-    </AuthGate>
   )
 }

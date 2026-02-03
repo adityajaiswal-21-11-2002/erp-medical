@@ -1,7 +1,5 @@
 'use client'
 
-import { AuthGate } from '@/components/auth-gate'
-import { RetailerLayout } from '@/components/retailer-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -46,9 +44,7 @@ export default function SupportPage() {
   }, [])
 
   return (
-    <AuthGate requiredAccountType="RETAILER">
-      <RetailerLayout>
-        <div className="space-y-6">
+    <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Support Center</h1>
             <p className="text-muted-foreground mt-2">Get help and report issues</p>
@@ -250,7 +246,5 @@ export default function SupportPage() {
             </CardContent>
           </Card>
         </div>
-      </RetailerLayout>
-    </AuthGate>
   )
 }

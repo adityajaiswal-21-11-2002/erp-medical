@@ -1,7 +1,5 @@
 'use client'
 
-import { AuthGate } from '@/components/auth-gate'
-import { RetailerLayout } from '@/components/retailer-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -45,9 +43,7 @@ export default function ProductDetailPage() {
   ]
 
   return (
-    <AuthGate requiredAccountType="RETAILER">
-      <RetailerLayout>
-        <div className="space-y-6">
+    <div className="space-y-6">
           {/* Breadcrumb */}
           <Button variant="ghost" size="sm" className="bg-transparent mb-2" asChild>
             <Link href="/retailer/catalog" className="gap-1">
@@ -242,7 +238,5 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
-      </RetailerLayout>
-    </AuthGate>
   )
 }

@@ -43,7 +43,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null)
     setToken(null)
     setAccessToken(null)
-    localStorage.removeItem(STORAGE_KEY)
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem("pharma_token")
+    }
     api.post("/api/auth/logout").catch(() => undefined)
   }
 

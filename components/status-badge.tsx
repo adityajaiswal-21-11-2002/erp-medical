@@ -44,6 +44,7 @@ export type StatusType =
   | 'PENDING'
   | 'SUCCESS'
   | 'FAILED'
+  | 'PAID'
 
 const statusConfig: Record<StatusType, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: any }> = {
   pending: { label: 'Pending', variant: 'secondary', icon: Clock },
@@ -86,6 +87,7 @@ const statusConfig: Record<StatusType, { label: string; variant: 'default' | 'se
   PENDING: { label: 'Pending', variant: 'secondary', icon: Clock },
   SUCCESS: { label: 'Success', variant: 'default', icon: CheckCircle2 },
   FAILED: { label: 'Failed', variant: 'destructive', icon: XCircle },
+  PAID: { label: 'Paid', variant: 'default', icon: Receipt },
 }
 
 interface StatusBadgeProps {
@@ -94,7 +96,11 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, showIcon = true }: StatusBadgeProps) {
-  const config = statusConfig[status]
+  const config = statusConfig[status] ?? {
+    label: String(status),
+    variant: 'outline' as const,
+    icon: Receipt,
+  }
   const Icon = config.icon
 
   return (

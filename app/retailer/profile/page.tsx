@@ -1,7 +1,5 @@
 'use client'
 
-import { AuthGate } from '@/components/auth-gate'
-import { RetailerLayout } from '@/components/retailer-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,7 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
-import { Edit2, Check, CheckCircle2, AlertCircle, LogOut } from 'lucide-react'
+import Link from 'next/link'
+import { Edit2, Check, CheckCircle2, AlertCircle, LogOut, Clock } from 'lucide-react'
 import { useAuth } from '@/app/auth-context'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -22,6 +21,8 @@ export default function ProfilePage() {
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [consent, setConsent] = useState({ dpdpAccepted: false, marketingOptIn: false })
+  const [kycStatus, setKycStatus] = useState<'NOT_STARTED' | 'PENDING' | 'APPROVED' | 'REJECTED' | null>(null)
+  const [kycSubmission, setKycSubmission] = useState<{ createdAt?: string; rejectionReason?: string; businessName?: string; gstin?: string; drugLicenseNumber?: string } | null>(null)
   const [profile, setProfile] = useState({
     shopName: 'Raj Retail Store',
     ownerName: 'Raj Kumar',
@@ -65,10 +66,22 @@ export default function ProfilePage() {
     loadConsent().catch(() => undefined)
   }, [])
 
+  useEffect(() => {
+    const loadKyc = async () => {
+      try {
+        const res = await api.get('/api/kyc/status')
+        const data = res.data?.data
+        setKycStatus(data?.kycStatus || 'NOT_STARTED')
+        setKycSubmission(data?.submission || null)
+      } catch {
+        setKycStatus('NOT_STARTED')
+      }
+    }
+    loadKyc().catch(() => undefined)
+  }, [])
+
   return (
-    <AuthGate requiredAccountType="RETAILER">
-      <RetailerLayout>
-        <div className="space-y-6">
+    <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold">My Profile</h1>
@@ -226,61 +239,139 @@ export default function ProfilePage() {
               </Card>
             </TabsContent>
 
-            {/* KYC Status Tab */}
+            {/* KYC Status Tab - dynamic from /api/kyc/status */}
             <TabsContent value="kyc" className="space-y-6 mt-6">
-              <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                <AlertDescription className="ml-2 text-emerald-800 dark:text-emerald-100">
-                  Your KYC is verified and approved
-                </AlertDescription>
-              </Alert>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>KYC Information</CardTitle>
-                  <CardDescription>Your verified business details</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">KYC Status</p>
-                      <p className="mt-1 font-semibold">Approved</p>
-                      <Badge className="mt-2 bg-emerald-100 text-emerald-800">Verified</Badge>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Approval Date</p>
-                      <p className="mt-1 font-semibold">Jan 15, 2024</p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-sm font-medium text-muted-foreground mb-2">Verified Documents</p>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-emerald-600" />
-                          <span className="text-sm">GST Certificate (27AABCT1234F1Z5)</span>
+              {kycStatus === null && (
+                <p className="text-sm text-muted-foreground">Loading KYC status...</p>
+              )}
+              {kycStatus === 'NOT_STARTED' && (
+                <>
+                  <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950">
+                    <Clock className="h-4 w-4 text-amber-600" />
+                    <AlertDescription className="ml-2 text-amber-800 dark:text-amber-100">
+                      Complete KYC to unlock full ordering capabilities including bulk orders and credit facilities.
+                    </AlertDescription>
+                  </Alert>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>KYC Status</CardTitle>
+                      <CardDescription>You have not started KYC verification</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button asChild>
+                        <Link href="/retailer/kyc">Complete KYC</Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+              {kycStatus === 'PENDING' && (
+                <>
+                  <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950">
+                    <Clock className="h-4 w-4 text-amber-600" />
+                    <AlertDescription className="ml-2 text-amber-800 dark:text-amber-100">
+                      Your KYC is under review. We will notify you once verification is complete.
+                    </AlertDescription>
+                  </Alert>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>KYC Status</CardTitle>
+                      <CardDescription>Documents submitted – awaiting verification</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Badge variant="secondary">Pending</Badge>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+              {kycStatus === 'REJECTED' && (
+                <>
+                  <Alert className="border-red-200 bg-red-50 dark:bg-red-950">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="ml-2 text-red-800 dark:text-red-100">
+                      Your KYC application was rejected. Please review the reason and resubmit.
+                    </AlertDescription>
+                  </Alert>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Rejection Reason</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        {kycSubmission?.rejectionReason || 'KYC needs updates.'}
+                      </p>
+                      <Button asChild variant="outline">
+                        <Link href="/retailer/kyc">Resubmit KYC</Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+              {kycStatus === 'APPROVED' && (
+                <>
+                  <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    <AlertDescription className="ml-2 text-emerald-800 dark:text-emerald-100">
+                      Your KYC is verified and approved
+                    </AlertDescription>
+                  </Alert>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>KYC Information</CardTitle>
+                      <CardDescription>Your verified business details</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">KYC Status</p>
+                          <p className="mt-1 font-semibold">Approved</p>
+                          <Badge className="mt-2 bg-emerald-100 text-emerald-800">Verified</Badge>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-emerald-600" />
-                          <span className="text-sm">Drug License (DL-123456)</span>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Approval Date</p>
+                          <p className="mt-1 font-semibold">
+                            {kycSubmission?.createdAt
+                              ? new Date(kycSubmission.createdAt).toLocaleDateString()
+                              : '—'}
+                          </p>
                         </div>
+                        {(kycSubmission?.gstin || kycSubmission?.businessName) && (
+                          <div className="col-span-2">
+                            <p className="text-sm font-medium text-muted-foreground mb-2">Verified Details</p>
+                            <div className="space-y-2">
+                              {kycSubmission.gstin && (
+                                <div className="flex items-center gap-2">
+                                  <Check className="w-4 h-4 text-emerald-600" />
+                                  <span className="text-sm">GST: {kycSubmission.gstin}</span>
+                                </div>
+                              )}
+                              {kycSubmission.businessName && (
+                                <div className="flex items-center gap-2">
+                                  <Check className="w-4 h-4 text-emerald-600" />
+                                  <span className="text-sm">{kycSubmission.businessName}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Update KYC Documents</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    If your documents have expired or changed, you can update them here. The updated documents will be verified.
-                  </p>
-                  <Button variant="outline" className="bg-transparent">
-                    Update KYC Documents
-                  </Button>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Update KYC Documents</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        If your documents have expired or changed, you can update them from the KYC page.
+                      </p>
+                      <Button variant="outline" className="bg-transparent" asChild>
+                        <Link href="/retailer/kyc">Update KYC Documents</Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
             </TabsContent>
 
             {/* Preferences Tab */}
@@ -354,7 +445,5 @@ export default function ProfilePage() {
             </TabsContent>
           </Tabs>
         </div>
-      </RetailerLayout>
-    </AuthGate>
   )
 }

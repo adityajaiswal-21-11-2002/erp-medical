@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
@@ -22,6 +22,7 @@ import {
   LogOut,
 } from "lucide-react"
 
+import { useAuth } from "@/app/auth-context"
 import { AuthGate } from "@/components/auth-gate"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -48,6 +49,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useTheme } from "@/app/theme-provider"
+import { api } from "@/lib/api"
 
 const menuItems = [
   { title: "Dashboard", icon: Home, href: "/distributor/dashboard", id: "dashboard" },
@@ -63,10 +65,29 @@ const menuItems = [
 ]
 
 export default function DistributorLayout({ children }: { children: React.ReactNode }) {
+  const { user, logout: authLogout } = useAuth()
   const { isDark, setTheme } = useTheme()
   const pathname = usePathname()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
+  const [ordersCount, setOrdersCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const res = await api.get("/api/distributor/orders")
+        const data = res.data?.data
+        const list = Array.isArray(data) ? data : []
+        const pending = list.filter(
+          (o: any) => (o.workflow?.distributorStatus || o.distributorStatus) === "PENDING_APPROVAL"
+        )
+        setOrdersCount(pending.length)
+      } catch {
+        setOrdersCount(0)
+      }
+    }
+    fetchOrders().catch(() => undefined)
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -110,9 +131,9 @@ export default function DistributorLayout({ children }: { children: React.ReactN
                             >
                               <item.icon className="w-4 h-4" />
                               <span>{item.title}</span>
-                              {item.id === "orders" && (
+                              {item.id === "orders" && ordersCount !== null && ordersCount > 0 && (
                                 <Badge variant="secondary" className="ml-auto text-xs">
-                                  12
+                                  {ordersCount > 99 ? "99+" : ordersCount}
                                 </Badge>
                               )}
                             </Link>
@@ -128,18 +149,21 @@ export default function DistributorLayout({ children }: { children: React.ReactN
             <div className="border-t p-4 mt-auto space-y-2">
               <div className="flex items-center space-x-2 px-2">
                 <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-foreground text-xs font-semibold">
-                  DP
+                  {(user?.name || "D").slice(0, 2).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">Delta Pharma</p>
-                  <p className="text-xs text-muted-foreground truncate">ID: DIST-092</p>
+                  <p className="text-sm font-medium truncate">{user?.name || "Distributor"}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user?.email || "Signed in"}</p>
                 </div>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start text-xs"
-                onClick={() => router.push("/auth/login")}
+                onClick={() => {
+                  authLogout()
+                  router.push("/auth/login")
+                }}
               >
                 <LogOut className="w-3 h-3 mr-2" />
                 Logout
@@ -186,7 +210,13 @@ export default function DistributorLayout({ children }: { children: React.ReactN
                       <Link href="/distributor/profile">Profile Settings</Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive" onClick={() => router.push("/auth/login")}>
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={() => {
+                        authLogout()
+                        router.push("/auth/login")
+                      }}
+                    >
                       Logout
                     </DropdownMenuItem>
                   </DropdownMenuContent>

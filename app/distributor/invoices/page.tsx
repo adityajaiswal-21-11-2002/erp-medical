@@ -30,9 +30,11 @@ export default function DistributorInvoicesPage() {
     const load = async () => {
       try {
         const res = await api.get("/api/erp/invoices")
-        setInvoices(res.data?.data || [])
+        const data = res.data?.data
+        setInvoices(Array.isArray(data) ? data : [])
       } catch (error: any) {
         toast.error(error?.response?.data?.error || "Failed to load invoices")
+        setInvoices([])
       }
     }
     load().catch(() => undefined)
@@ -65,23 +67,31 @@ export default function DistributorInvoicesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {invoices.map((invoice) => (
-                <TableRow key={invoice.invoiceNumber}>
-                  <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>₹{invoice.amount}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={invoice.status as any} />
-                  </TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">
-                      <Download className="w-4 h-4 mr-2" />
-                      Download
-                    </Button>
+              {invoices.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    No invoices found.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                invoices.map((invoice) => (
+                  <TableRow key={invoice.invoiceNumber}>
+                    <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+                    <TableCell>-</TableCell>
+                    <TableCell>₹{invoice.amount}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={invoice.status as any} />
+                    </TableCell>
+                    <TableCell>-</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="sm">
+                        <Download className="w-4 h-4 mr-2" />
+                        Download
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

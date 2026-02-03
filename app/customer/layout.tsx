@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ShoppingCart, User, Search, X } from "lucide-react"
 
+import { useCart } from "@/app/cart-context"
 import { AuthGate } from "@/components/auth-gate"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,7 +16,9 @@ import { api } from "@/lib/api"
 function CustomerLayoutInner({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { items } = useCart()
   const [searchQuery, setSearchQuery] = useState("")
+  const cartCount = items.reduce((sum, item) => sum + item.quantity, 0)
   const [refCode, setRefCode] = useState<string | null>(null)
   const [dismissed, setDismissed] = useState(false)
 
@@ -85,9 +88,11 @@ function CustomerLayoutInner({ children }: { children: React.ReactNode }) {
             <Link href="/customer/cart">
               <Button variant="ghost" size="sm" className="relative">
                 <ShoppingCart className="w-4 h-4" />
-                <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
-                  3
-                </Badge>
+                {cartCount > 0 && (
+                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+                    {cartCount > 99 ? "99+" : cartCount}
+                  </Badge>
+                )}
               </Button>
             </Link>
             <Link href="/customer/account">

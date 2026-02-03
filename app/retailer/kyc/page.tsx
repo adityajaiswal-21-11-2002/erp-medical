@@ -1,7 +1,5 @@
 'use client'
 
-import { AuthGate } from '@/components/auth-gate'
-import { RetailerLayout } from '@/components/retailer-layout'
 import { KycWizard } from '@/components/kyc-wizard'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -60,9 +58,7 @@ export default function RetailerKycPage() {
 
   if (kycStatus === 'approved') {
     return (
-      <AuthGate requiredAccountType="RETAILER">
-        <RetailerLayout>
-          <div className="space-y-6">
+      <div className="space-y-6">
             <div>
               <h1 className="text-3xl font-bold">KYC Verification</h1>
               <p className="text-muted-foreground mt-2">Your account has been verified</p>
@@ -94,16 +90,12 @@ export default function RetailerKycPage() {
               </CardContent>
             </Card>
           </div>
-        </RetailerLayout>
-      </AuthGate>
     )
   }
 
   if (kycStatus === 'rejected') {
     return (
-      <AuthGate requiredAccountType="RETAILER">
-        <RetailerLayout>
-          <div className="space-y-6">
+      <div className="space-y-6">
             <div>
               <h1 className="text-3xl font-bold">KYC Verification</h1>
               <p className="text-muted-foreground mt-2">Your verification was not approved</p>
@@ -154,16 +146,12 @@ export default function RetailerKycPage() {
               </CardContent>
             </Card>
           </div>
-        </RetailerLayout>
-      </AuthGate>
     )
   }
 
   // Pending status (default)
   return (
-    <AuthGate requiredAccountType="RETAILER">
-      <RetailerLayout>
-        <div className="space-y-6">
+    <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Complete Your KYC</h1>
             <p className="text-muted-foreground mt-2">Help us verify your business details</p>
@@ -206,7 +194,5 @@ export default function RetailerKycPage() {
             </CardContent>
           </Card>
         </div>
-      </RetailerLayout>
-    </AuthGate>
   )
 }

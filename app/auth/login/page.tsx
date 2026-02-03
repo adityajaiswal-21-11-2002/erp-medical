@@ -74,15 +74,16 @@ export default function LoginPage() {
       }
       login({ token: accessToken, user })
       toast.success("Welcome back")
-      if (requiredAccountType === "ADMIN") {
-        router.push("/admin/dashboard")
-      } else if (requiredAccountType === "DISTRIBUTOR") {
-        router.push("/distributor/dashboard")
-      } else if (requiredAccountType === "CUSTOMER") {
-        router.push("/customer")
-      } else {
-        router.push("/retailer/dashboard")
-      }
+      // Full page navigation so the app rehydrates with new auth (avoids stale state on login → logout → login)
+      const path =
+        requiredAccountType === "ADMIN"
+          ? "/admin/dashboard"
+          : requiredAccountType === "DISTRIBUTOR"
+            ? "/distributor/dashboard"
+            : requiredAccountType === "CUSTOMER"
+              ? "/customer"
+              : "/retailer/dashboard"
+      window.location.href = path
     } catch (error: any) {
       const isNetworkError =
         error?.code === "ERR_NETWORK" ||
