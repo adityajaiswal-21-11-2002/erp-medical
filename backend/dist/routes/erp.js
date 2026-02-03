@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const erpController_1 = require("../controllers/erpController");
+const auth_1 = require("../middleware/auth");
+const role_1 = require("../middleware/role");
+const accountType_1 = require("../middleware/accountType");
+const router = (0, express_1.Router)();
+router.use(auth_1.requireAuth);
+router.post("/sync/products", (0, role_1.requireRole)("ADMIN"), erpController_1.syncProducts);
+router.post("/sync/inventory", (0, role_1.requireRole)("ADMIN"), erpController_1.syncInventory);
+router.post("/orders", (0, role_1.requireRole)("ADMIN"), erpController_1.pushOrders);
+router.post("/invoice-callback", (0, role_1.requireRole)("ADMIN"), erpController_1.invoiceCallback);
+router.post("/shipment-status", (0, role_1.requireRole)("ADMIN"), erpController_1.shipmentStatus);
+router.get("/invoices", (0, accountType_1.requireAccountType)("ADMIN", "DISTRIBUTOR"), erpController_1.listInvoices);
+exports.default = router;

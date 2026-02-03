@@ -34,6 +34,10 @@ export async function attributeReferral(req: Request, res: Response) {
   if (!referral) {
     return sendSuccess(res, null, "Referral not found")
   }
+  const existing = await ReferralAttribution.findOne({ orderId })
+  if (existing) {
+    return sendSuccess(res, referral, "Referral already attributed")
+  }
   await ReferralAttribution.create({
     refCode,
     retailerId: referral.retailerId,

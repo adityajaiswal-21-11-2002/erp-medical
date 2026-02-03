@@ -1,6 +1,8 @@
 import axios from "axios"
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL
+// When NEXT_PUBLIC_API_URL is unset or empty, requests go to same-origin /api (Next.js API routes).
+// Set it (e.g. http://localhost:5000) only if you use the separate Express backend.
+const baseURL = process.env.NEXT_PUBLIC_API_URL ?? ""
 
 export const api = axios.create({
   baseURL,

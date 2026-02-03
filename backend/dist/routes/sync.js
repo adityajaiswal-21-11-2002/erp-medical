@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const syncController_1 = require("../controllers/syncController");
+const auth_1 = require("../middleware/auth");
+const role_1 = require("../middleware/role");
+const router = (0, express_1.Router)();
+router.use(auth_1.requireAuth, (0, role_1.requireRole)("ADMIN"));
+router.get("/logs", syncController_1.listSyncLogs);
+router.post("/retry/:id", syncController_1.retrySync);
+exports.default = router;

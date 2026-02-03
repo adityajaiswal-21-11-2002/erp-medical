@@ -4,8 +4,11 @@ import path from "path"
 
 const localEnv = path.resolve(process.cwd(), ".env")
 const rootEnv = path.resolve(process.cwd(), "..", ".env")
+const testEnv = path.resolve(process.cwd(), ".env.test")
 
-if (fs.existsSync(localEnv)) {
+if (process.env.NODE_ENV === "test" && fs.existsSync(testEnv)) {
+  dotenv.config({ path: testEnv })
+} else if (fs.existsSync(localEnv)) {
   dotenv.config({ path: localEnv })
 } else if (fs.existsSync(rootEnv)) {
   dotenv.config({ path: rootEnv })

@@ -6,6 +6,7 @@ import FeatureFlag from "./models/FeatureFlag"
 import RewardCatalog from "./models/RewardCatalog"
 import BannerAsset from "./models/BannerAsset"
 import Coupon from "./models/Coupon"
+import Referral from "./models/Referral"
 
 async function run() {
   await connectDb()
@@ -236,6 +237,18 @@ async function run() {
       { code: "WELCOME5", description: "5% off", discountPercent: 5, active: true },
       { code: "BULK10", description: "10% off bulk orders", discountPercent: 10, active: true },
     ])
+  }
+
+  const deterministic = process.env.SEED_DETERMINISTIC === "1"
+  if (deterministic) {
+    const retailerUser = await User.findOne({ email: "user@demo.com" })
+    if (retailerUser) {
+      await Referral.findOneAndUpdate(
+        { retailerId: retailerUser._id },
+        { $set: { refCode: "REF-DEMO1" }, $setOnInsert: { retailerId: retailerUser._id } },
+        { upsert: true },
+      )
+    }
   }
 
   console.log("Seed complete")

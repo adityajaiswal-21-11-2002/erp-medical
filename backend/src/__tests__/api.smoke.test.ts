@@ -58,6 +58,26 @@ jest.mock("../models/KycSubmission", () => ({
   findById: jest.fn().mockResolvedValue(null),
 }))
 
+jest.mock("../services/complianceService", () => ({
+  logComplianceEvent: jest.fn().mockResolvedValue(undefined),
+}))
+
+jest.mock("../models/AnalyticsEvent", () => ({
+  create: jest.fn().mockResolvedValue({ _id: "ev1" }),
+}))
+
+jest.mock("../models/LoyaltyLedger", () => ({
+  create: jest.fn().mockResolvedValue({ _id: "ledger1" }),
+}))
+
+jest.mock("../models/Referral", () => ({
+  findOne: jest.fn().mockResolvedValue(null),
+}))
+
+jest.mock("../models/ReferralAttribution", () => ({
+  create: jest.fn().mockResolvedValue({ _id: "attr1" }),
+}))
+
 jest.mock("../middleware/auth", () => ({
   requireAuth: (req: any, _res: any, next: any) => {
     req.user = { id: "user1", role: "ADMIN", email: "admin@demo.com", name: "Admin", status: "ACTIVE", accountType: "ADMIN" }

@@ -84,6 +84,16 @@ export default function LoginPage() {
         router.push("/retailer/dashboard")
       }
     } catch (error: any) {
+      const isNetworkError =
+        error?.code === "ERR_NETWORK" ||
+        error?.message?.includes("Connection refused") ||
+        error?.message?.includes("Network Error")
+      if (isNetworkError) {
+        toast.error(
+          "Cannot reach the server. Make sure the backend is running (e.g. run `pnpm dev` in the backend folder).",
+        )
+        return
+      }
       toast.error(error?.response?.data?.error || "Login failed")
     }
   }
@@ -94,11 +104,31 @@ export default function LoginPage() {
       description="Welcome to PharmaHub Distribution Portal"
     >
       <Tabs defaultValue={defaultRole} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
-          <TabsTrigger value="retailer">Retailer Login</TabsTrigger>
-          <TabsTrigger value="distributor">Distributor Login</TabsTrigger>
-          <TabsTrigger value="customer">Customer Login</TabsTrigger>
-          <TabsTrigger value="admin">Admin Login</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-1 mb-6 h-auto p-1.5 sm:p-1">
+          <TabsTrigger
+            value="retailer"
+            className="min-w-0 px-2 py-2 sm:py-1.5 text-xs sm:text-sm whitespace-normal text-center leading-tight"
+          >
+            Retailer
+          </TabsTrigger>
+          <TabsTrigger
+            value="distributor"
+            className="min-w-0 px-2 py-2 sm:py-1.5 text-xs sm:text-sm whitespace-normal text-center leading-tight"
+          >
+            Distributor
+          </TabsTrigger>
+          <TabsTrigger
+            value="customer"
+            className="min-w-0 px-2 py-2 sm:py-1.5 text-xs sm:text-sm whitespace-normal text-center leading-tight"
+          >
+            Customer
+          </TabsTrigger>
+          <TabsTrigger
+            value="admin"
+            className="min-w-0 px-2 py-2 sm:py-1.5 text-xs sm:text-sm whitespace-normal text-center leading-tight"
+          >
+            Admin
+          </TabsTrigger>
         </TabsList>
 
         {/* Retailer Login Tab */}
