@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AuthCard } from "@/components/auth-card"
 import { PasswordInput } from "@/components/password-input"
@@ -29,11 +29,13 @@ export default function LoginPage() {
   const [otpPhone, setOtpPhone] = useState("")
   const [otpValue, setOtpValue] = useState("")
   const [redirectPath, setRedirectPath] = useState<string | null>(null)
+  const hasRedirected = useRef(false)
 
   useEffect(() => {
-    if (redirectPath) {
-      window.location.assign(redirectPath)
-    }
+    if (!redirectPath || hasRedirected.current) return
+    hasRedirected.current = true
+    // replace() avoids adding to history so back button doesn't return to login
+    window.location.replace(redirectPath)
   }, [redirectPath])
 
   const defaultRole =

@@ -8,7 +8,6 @@ if (!MONGODB_URI) {
 
 // Cache connection for serverless (Next.js) to avoid creating new connection per request
 declare global {
-  // eslint-disable-next-line no-var
   var mongoose: { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null }
 }
 

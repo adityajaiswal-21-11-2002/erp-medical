@@ -81,18 +81,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false)
       return
     }
-    api
-      .get("/api/auth/me")
-      .then((res) => {
-        const profile = res.data?.data
-        if (profile) {
-          setUser(profile)
-        }
-      })
-      .catch(() => {
-        logout()
-      })
-      .finally(() => setIsLoading(false))
+    // Show dashboard immediately with stored user (fixes relogin after logout).
+    // Do not call /api/auth/me on mount: it can return 401 and the global
+    // 401 handler would logout and redirect, breaking the login → dashboard flow.
+    setIsLoading(false)
   }, [])
 
   const login = (payload: { token: string; user: UserProfile }) => {
