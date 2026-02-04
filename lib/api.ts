@@ -40,9 +40,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error?.response?.status === 401 && typeof window !== "undefined") {
-      setAccessToken(null)
-      if (onUnauthorized) {
-        onUnauthorized()
+      const url = String(error?.config?.url ?? "")
+      const isAuthEndpoint =
+        url.includes("auth/login") ||
+        url.includes("auth/logout") ||
+        url.includes("auth/register")
+      if (!isAuthEndpoint) {
+        setAccessToken(null)
+        if (onUnauthorized) {
+          onUnauthorized()
+        }
       }
     }
     return Promise.reject(error)

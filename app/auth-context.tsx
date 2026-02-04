@@ -47,6 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem(STORAGE_KEY)
       localStorage.removeItem("pharma_token")
     }
+    // Fire-and-forget; skip 401 handler for logout endpoint in api interceptor
     api.post("/api/auth/logout").catch(() => undefined)
   }
 

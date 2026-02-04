@@ -13,7 +13,7 @@ interface AuthCardProps {
 
 export function AuthCard({ title, description, children }: AuthCardProps) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-12">
+    <div className="w-full flex flex-col items-center justify-center bg-background px-4 py-6">
       <div className="w-full max-w-md">
         {/* Brand Header */}
         <div className="flex items-center justify-center gap-3 mb-8">
