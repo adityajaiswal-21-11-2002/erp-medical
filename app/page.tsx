@@ -2,6 +2,7 @@
 
 import React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useAuth } from "@/app/auth-context"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,6 +17,13 @@ import {
   CheckCircle2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 function HomeHeader() {
   const { isAuthenticated, user, accountType, logout, isLoading } = useAuth()
@@ -153,6 +161,33 @@ const roleCards = [
   },
 ]
 
+const heroSlides = [
+  {
+    src: "/images/home-hero-awards.jpeg",
+    alt: "Leader in pharmaceutical distribution at an industry event",
+    label: "Trusted industry recognition",
+    description: "Award-winning reliability in pharma distribution and retail enablement.",
+  },
+  {
+    src: "/images/home-hero-care.jpeg",
+    alt: "Healthcare professional walking on the beach at sunrise",
+    label: "Built for real people",
+    description: "Designed for pharmacies and distributors who care about every patient.",
+  },
+  {
+    src: "/images/home-hero-office.jpeg",
+    alt: "Professional in a modern office using a tablet",
+    label: "Modern digital workflows",
+    description: "Digitize orders, inventory, and settlements with a clean, simple interface.",
+  },
+  {
+    src: "/images/home-hero-boardroom.jpeg",
+    alt: "Business team aligned in a strategy meeting",
+    label: "One source of truth",
+    description: "Retailers, distributors, and admins working together on a single platform.",
+  },
+]
+
 export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -170,42 +205,112 @@ export default function HomePage() {
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="relative overflow-hidden border-b border-border/40 px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-14 md:pb-32 md:pt-20 lg:px-8">
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_50%_at_50%_-30%,hsl(var(--primary)/0.12),transparent_70%)]" />
+        <section className="relative overflow-hidden border-b border-border/40 px-4 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-14 md:pb-24 md:pt-20 lg:px-8">
+          <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_60%_at_10%_-20%,hsl(var(--primary)/0.25),transparent_65%)]" />
+          <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_60%_at_90%_120%,hsl(var(--primary)/0.15),transparent_65%)]" />
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border/50 to-transparent" />
-          <div className="mx-auto max-w-4xl text-center">
-            <p className="text-sm font-medium uppercase tracking-widest text-primary/80 sm:text-base">
-              Distribution platform
-            </p>
-            <h1 className="mt-4 text-[2.25rem] font-bold leading-[1.15] tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
-              Pharmaceutical distribution,{" "}
-              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                simplified
-              </span>
-            </h1>
-            <p className="mt-5 text-base leading-relaxed text-muted-foreground sm:text-lg md:mt-6 md:text-xl md:leading-relaxed">
-              One platform for retailers, distributors, and customers. Order
-              medicines, manage inventory, and grow your business with PharmaHub.
-            </p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4 md:mt-10">
-              <Button
-                size="lg"
-                asChild
-                className="w-full gap-2 text-base shadow-lg sm:w-auto sm:min-w-[180px]"
-              >
-                <Link href="/auth/login">
-                  Get started
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                asChild
-                className="w-full sm:w-auto sm:min-w-[180px]"
-              >
-                <Link href="/auth/login">Login to your account</Link>
-              </Button>
+          <div className="mx-auto flex max-w-6xl flex-col items-stretch gap-10 md:flex-row md:items-center lg:gap-14">
+            <div className="max-w-xl">
+              <p className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs font-medium uppercase tracking-[0.22em] text-primary/80 sm:text-[0.7rem]">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                Omni-channel pharma distribution
+              </p>
+              <h1 className="mt-4 text-[2.25rem] font-bold leading-[1.15] tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-[3.4rem]">
+                Manage{" "}
+                <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  every{" "}
+                </span>
+                order in one place.
+              </h1>
+              <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg md:mt-5 md:text-lg md:leading-relaxed">
+                PharmaHub connects retailers, distributors, and customers so you
+                can move medicines faster, keep shelves stocked, and stay fully
+                compliant—without jumping between systems.
+              </p>
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 md:mt-8">
+                <Button
+                  size="lg"
+                  asChild
+                  className="w-full gap-2 text-base shadow-lg sm:w-auto sm:min-w-[180px]"
+                >
+                  <Link href="/auth/login">
+                    Get started
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  asChild
+                  className="w-full sm:w-auto sm:min-w-[180px]"
+                >
+                  <Link href="/auth/login">Login to your account</Link>
+                </Button>
+              </div>
+              <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-muted-foreground sm:text-sm">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-background/80 px-3 py-1">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                  <span>Role-based dashboards</span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-background/80 px-3 py-1">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-sky-500" />
+                  <span>ERP-aligned workflows</span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-background/80 px-3 py-1">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-amber-500" />
+                  <span>Compliance-ready by design</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative flex-1">
+              <div className="pointer-events-none absolute -inset-10 -z-10 bg-[radial-gradient(circle_at_top,_hsl(var(--primary)/0.18),_transparent_55%)]" />
+              <div className="relative rounded-3xl border border-border/60 bg-background/80 p-4 shadow-xl shadow-primary/10 sm:p-5">
+                <Carousel
+                  opts={{ loop: true }}
+                  className="group"
+                  aria-label="PharmaHub in action across roles"
+                >
+                  <div className="absolute inset-x-10 top-4 z-[1] flex items-center justify-between text-[0.7rem] font-medium text-muted-foreground sm:text-xs">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-background/80 px-3 py-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Live platform visuals
+                    </span>
+                    <span className="hidden text-xs sm:inline">
+                      Swipe or use arrows to explore
+                    </span>
+                  </div>
+                  <CarouselContent className="pt-9 sm:pt-10">
+                    {heroSlides.map((slide) => (
+                      <CarouselItem key={slide.src}>
+                        <div className="overflow-hidden rounded-2xl border border-border/60 bg-muted/40">
+                          <div className="relative aspect-[16/9] w-full">
+                            <Image
+                              src={slide.src}
+                              alt={slide.alt}
+                              fill
+                              sizes="(min-width: 1024px) 520px, (min-width: 768px) 60vw, 100vw"
+                              className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                              priority
+                            />
+                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent mix-blend-multiply" />
+                          </div>
+                          <div className="flex flex-col gap-1.5 px-4 py-3 text-left sm:px-5 sm:py-3.5">
+                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary/90 sm:text-[0.72rem]">
+                              {slide.label}
+                            </p>
+                            <p className="text-xs text-muted-foreground sm:text-sm">
+                              {slide.description}
+                            </p>
+                          </div>
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="-left-3 top-1/2 hidden translate-y-0 bg-background/95 shadow-sm ring-1 ring-border/80 hover:bg-background sm:flex" />
+                  <CarouselNext className="-right-3 top-1/2 hidden translate-y-0 bg-background/95 shadow-sm ring-1 ring-border/80 hover:bg-background sm:flex" />
+                </Carousel>
+              </div>
             </div>
           </div>
         </section>
@@ -263,6 +368,236 @@ export default function HomePage() {
                   </Link>
                 )
               })}
+            </div>
+          </div>
+        </section>
+
+        {/* How it works + key capabilities */}
+        <section className="border-y border-border/40 bg-muted/20 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+          <div className="mx-auto flex max-w-6xl flex-col gap-10 lg:flex-row lg:items-start">
+            <div className="max-w-xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary/80 sm:text-sm">
+                How PharmaHub fits in
+              </p>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
+                A simple three‑step flow from store counter to central ERP.
+              </h2>
+              <ol className="mt-6 space-y-4 text-sm text-muted-foreground sm:text-base">
+                <li className="flex gap-3">
+                  <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                    1
+                  </span>
+                  <div>
+                    <p className="font-semibold text-foreground">Retailers raise clean, structured orders.</p>
+                    <p className="mt-1">
+                      Guided cart, scheme visibility and mandatory fields ensure every order reaches the
+                      distributor with the right data the first time.
+                    </p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                    2
+                  </span>
+                  <div>
+                    <p className="font-semibold text-foreground">Distributors fulfill and reconcile faster.</p>
+                    <p className="mt-1">
+                      Inventory, invoicing and credit notes stay aligned with your existing ERP, reducing
+                      manual entries and spreadsheets.
+                    </p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                    3
+                  </span>
+                  <div>
+                    <p className="font-semibold text-foreground">Central teams get one source of truth.</p>
+                    <p className="mt-1">
+                      Finance, compliance and leadership track revenue, service levels and schemes from the
+                      same live dataset.
+                    </p>
+                  </div>
+                </li>
+              </ol>
+            </div>
+
+            <div className="flex-1 space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl border border-border/60 bg-background/80 p-5 shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary/80">
+                    Built for Indian pharma
+                  </p>
+                  <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-500" />
+                      <span>Supports schemes, returns and credit notes out of the box.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-500" />
+                      <span>GST‑ready invoices and documentation.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-500" />
+                      <span>Role‑based access for retail, distribution and admin teams.</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="rounded-2xl border border-border/60 bg-background/80 p-5 shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary/80">
+                    Operational safeguards
+                  </p>
+                  <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 text-sky-500" />
+                      <span>Configurable order limits and validations at each step.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 text-sky-500" />
+                      <span>Audit trails for key changes and approvals.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 text-sky-500" />
+                      <span>Health‑check dashboards for KYC, compliance and SLAs.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-dashed border-primary/40 bg-primary/5 px-5 py-4 text-sm text-muted-foreground sm:text-base">
+                <span className="font-medium text-foreground">Already running an ERP?</span>{" "}
+                PharmaHub is designed to sit on top of your existing stack—mirroring master data and
+                pushing back clean transactions instead of replacing what already works.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Operations video stripe (desktop / tablet only) */}
+        <section className="relative border-t border-border/40 bg-black px-4 py-14 sm:px-6 sm:py-20 lg:px-0">
+          {/* Desktop / tablet video as subtle background */}
+          <div className="absolute inset-0 hidden overflow-hidden md:block">
+            <video
+              className="h-full w-full object-cover opacity-70"
+              autoPlay
+              muted
+              loop
+              playsInline
+              src="/videos/v1.mp4"
+            />
+          </div>
+          {/* Mobile fallback image (no video on small screens) */}
+          <div className="absolute inset-0 md:hidden">
+            <Image
+              src="/images/home-hero-office.jpeg"
+              alt="PharmaHub in action inside a pharmacy"
+              fill
+              sizes="100vw"
+              className="object-cover"
+              priority
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/40" />
+
+          <div className="relative mx-auto flex max-w-6xl flex-col gap-10 px-0 md:flex-row md:items-center md:px-8">
+            <div className="max-w-xl text-primary-foreground">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary/80 sm:text-sm">
+                Live operations in motion
+              </p>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
+                Watch a full order journey from cart to settlement.
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-primary-foreground/80 sm:text-base">
+                See how retailers, distributors and finance teams all interact with the same
+                platform—without leaving their workflows or losing data between systems.
+              </p>
+              <div className="mt-6 grid gap-4 text-sm text-primary-foreground/85 sm:grid-cols-2 sm:text-base">
+                <div className="space-y-1">
+                  <p className="font-semibold text-primary-foreground">Retail counters</p>
+                  <p>Fast cart creation, offer visibility and accurate invoicing for every bill.</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="font-semibold text-primary-foreground">Back-office teams</p>
+                  <p>Dispatch, credit notes and settlements mapped cleanly to your ERP.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Metrics + culture video stripe */}
+        <section className="border-t border-border/40 bg-muted/40 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+          <div className="mx-auto flex max-w-6xl flex-col gap-10 lg:flex-row lg:items-center">
+            <div className="grid flex-1 gap-6 sm:grid-cols-3">
+              <div className="rounded-2xl border border-border/60 bg-background/80 p-5 shadow-sm">
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-primary/80">
+                  Order accuracy
+                </p>
+                <p className="mt-3 text-3xl font-semibold text-foreground">99.5%</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Reduce manual errors with consistent, guided flows for every role.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-border/60 bg-background/80 p-5 shadow-sm">
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-primary/80">
+                  Time to dispatch
+                </p>
+                <p className="mt-3 text-3xl font-semibold text-foreground">-40%</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Speed up picking, packing and invoicing with a single source of truth.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-border/60 bg-background/80 p-5 shadow-sm">
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-primary/80">
+                  Happy stakeholders
+                </p>
+                <p className="mt-3 text-3xl font-semibold text-foreground">4.9</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Simple UX that works for retailers, distributors, and central teams.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex-1">
+              <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-black/80 shadow-lg shadow-primary/5">
+                <div className="relative aspect-[21/9] w-full">
+                  {/* Desktop / tablet video */}
+                  <video
+                    className="hidden h-full w-full object-cover md:block"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    src="/videos/v2.mp4"
+                  />
+                  {/* Mobile fallback image (no video on small screens) */}
+                  <div className="absolute inset-0 md:hidden">
+                    <Image
+                      src="/images/home-hero-boardroom.jpeg"
+                      alt="Leadership team reviewing PharmaHub dashboards"
+                      fill
+                      sizes="100vw"
+                      className="object-cover"
+                      priority
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
+                  </div>
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/55 via-black/15 to-transparent" />
+                  <div className="pointer-events-none absolute inset-y-4 left-4 flex max-w-md flex-col justify-center gap-2 text-xs text-primary-foreground sm:inset-y-6 sm:left-6 sm:text-sm">
+                    <span className="inline-flex w-fit items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-[0.7rem] font-medium uppercase tracking-[0.16em]">
+                      Board-ready visibility
+                    </span>
+                    <p className="text-sm font-semibold sm:text-base">
+                      Give leadership a live view of orders, revenue and service levels across the
+                      network.
+                    </p>
+                    <p className="text-xs text-muted-foreground sm:text-sm">
+                      Visual dashboards and exports keep finance, operations and compliance aligned
+                      on the same data.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
