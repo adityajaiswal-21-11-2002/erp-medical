@@ -525,7 +525,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Metrics + culture video stripe */}
+        {/* Metrics + leadership stripe */}
         <section className="border-t border-border/40 bg-muted/40 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
           <div className="mx-auto flex max-w-6xl flex-col gap-10 lg:flex-row lg:items-center">
             <div className="grid flex-1 gap-6 sm:grid-cols-3">
@@ -561,28 +561,15 @@ export default function HomePage() {
             <div className="flex-1">
               <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-black/80 shadow-lg shadow-primary/5">
                 <div className="relative aspect-[21/9] w-full">
-                  {/* Desktop / tablet video */}
-                  <video
-                    className="hidden h-full w-full object-cover md:block"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    src="/videos/v2.mp4"
+                  <Image
+                    src="/images/home-hero-boardroom.jpeg"
+                    alt="Leadership team reviewing PharmaHub dashboards"
+                    fill
+                    sizes="(min-width: 1024px) 640px, 100vw"
+                    className="object-cover"
+                    priority
                   />
-                  {/* Mobile fallback image (no video on small screens) */}
-                  <div className="absolute inset-0 md:hidden">
-                    <Image
-                      src="/images/home-hero-boardroom.jpeg"
-                      alt="Leadership team reviewing PharmaHub dashboards"
-                      fill
-                      sizes="100vw"
-                      className="object-cover"
-                      priority
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
-                  </div>
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/55 via-black/15 to-transparent" />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
                   <div className="pointer-events-none absolute inset-y-4 left-4 flex max-w-md flex-col justify-center gap-2 text-xs text-primary-foreground sm:inset-y-6 sm:left-6 sm:text-sm">
                     <span className="inline-flex w-fit items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-[0.7rem] font-medium uppercase tracking-[0.16em]">
                       Board-ready visibility
