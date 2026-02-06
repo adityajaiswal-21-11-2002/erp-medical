@@ -47,8 +47,11 @@ export function Particles({
   const revealDuration = 3.5 // seconds
 
   // Create simulation material with scale parameter
+  const simulationMaterialRef = useRef<SimulationMaterial | null>(null)
   const simulationMaterial = useMemo(() => {
-    return new SimulationMaterial(planeScale)
+    const mat = new SimulationMaterial(planeScale)
+    simulationMaterialRef.current = mat
+    return mat
   }, [planeScale])
 
   const target = useFBO(size, size, {
@@ -58,10 +61,12 @@ export function Particles({
     type: THREE.FloatType,
   })
 
+  const dofPointsMaterialRef = useRef<DofPointsMaterial | null>(null)
   const dofPointsMaterial = useMemo(() => {
     const m = new DofPointsMaterial()
     m.uniforms.positions.value = target.texture
     m.uniforms.initialPositions.value = simulationMaterial.uniforms.positions.value
+    dofPointsMaterialRef.current = m
     return m
   }, [simulationMaterial, target.texture])
 
@@ -91,7 +96,9 @@ export function Particles({
   }, [size])
 
   useFrame((state, delta) => {
-    if (!dofPointsMaterial || !simulationMaterial) return
+    const dofMat = dofPointsMaterialRef.current
+    const simMat = simulationMaterialRef.current
+    if (!dofMat || !simMat) return
 
     state.gl.setRenderTarget(target)
     state.gl.clear()
@@ -122,28 +129,28 @@ export function Particles({
       setIsRevealing(false)
     }
 
-    dofPointsMaterial.uniforms.uTime.value = currentTime
-    dofPointsMaterial.uniforms.uFocus.value = focus
-    dofPointsMaterial.uniforms.uBlur.value = aperture
+    dofMat.uniforms.uTime.value = currentTime
+    dofMat.uniforms.uFocus.value = focus
+    dofMat.uniforms.uBlur.value = aperture
 
     easing.damp(
-      dofPointsMaterial.uniforms.uTransition,
+      dofMat.uniforms.uTransition,
       "value",
       introspect ? 1.0 : 0.0,
       introspect ? 0.35 : 0.2,
       delta
     )
 
-    simulationMaterial.uniforms.uTime.value = currentTime
-    simulationMaterial.uniforms.uNoiseScale.value = noiseScale
-    simulationMaterial.uniforms.uNoiseIntensity.value = noiseIntensity
-    simulationMaterial.uniforms.uTimeScale.value = timeScale * speed
+    simMat.uniforms.uTime.value = currentTime
+    simMat.uniforms.uNoiseScale.value = noiseScale
+    simMat.uniforms.uNoiseIntensity.value = noiseIntensity
+    simMat.uniforms.uTimeScale.value = timeScale * speed
 
     // Update point material uniforms
-    dofPointsMaterial.uniforms.uPointSize.value = pointSize
-    dofPointsMaterial.uniforms.uOpacity.value = opacity
-    dofPointsMaterial.uniforms.uRevealFactor.value = revealFactor
-    dofPointsMaterial.uniforms.uRevealProgress.value = easedProgress
+    dofMat.uniforms.uPointSize.value = pointSize
+    dofMat.uniforms.uOpacity.value = opacity
+    dofMat.uniforms.uRevealFactor.value = revealFactor
+    dofMat.uniforms.uRevealProgress.value = easedProgress
   })
 
   return (
