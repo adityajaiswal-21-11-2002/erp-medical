@@ -17,13 +17,7 @@ import {
   CheckCircle2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel"
+import { LandingHero } from "@/components/landing/hero"
 
 function HomeHeader() {
   const { isAuthenticated, user, accountType, logout, isLoading } = useAuth()
@@ -161,33 +155,6 @@ const roleCards = [
   },
 ]
 
-const heroSlides = [
-  {
-    src: "/images/home-hero-awards.jpeg",
-    alt: "Leader in pharmaceutical distribution at an industry event",
-    label: "Trusted industry recognition",
-    description: "Award-winning reliability in pharma distribution and retail enablement.",
-  },
-  {
-    src: "/images/home-hero-care.jpeg",
-    alt: "Healthcare professional walking on the beach at sunrise",
-    label: "Built for real people",
-    description: "Designed for pharmacies and distributors who care about every patient.",
-  },
-  {
-    src: "/images/home-hero-office.jpeg",
-    alt: "Professional in a modern office using a tablet",
-    label: "Modern digital workflows",
-    description: "Digitize orders, inventory, and settlements with a clean, simple interface.",
-  },
-  {
-    src: "/images/home-hero-boardroom.jpeg",
-    alt: "Business team aligned in a strategy meeting",
-    label: "One source of truth",
-    description: "Retailers, distributors, and admins working together on a single platform.",
-  },
-]
-
 export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -204,116 +171,7 @@ export default function HomePage() {
       <HomeHeader />
 
       <main className="flex-1">
-        {/* Hero */}
-        <section className="relative overflow-hidden border-b border-border/40 px-4 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-14 md:pb-24 md:pt-20 lg:px-8">
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_60%_at_10%_-20%,hsl(var(--primary)/0.25),transparent_65%)]" />
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_60%_at_90%_120%,hsl(var(--primary)/0.15),transparent_65%)]" />
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border/50 to-transparent" />
-          <div className="mx-auto flex max-w-6xl flex-col items-stretch gap-10 md:flex-row md:items-center lg:gap-14">
-            <div className="max-w-xl">
-              <p className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs font-medium uppercase tracking-[0.22em] text-primary/80 sm:text-[0.7rem]">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                Omni-channel pharma distribution
-              </p>
-              <h1 className="mt-4 text-[2.25rem] font-bold leading-[1.15] tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-[3.4rem]">
-                Manage{" "}
-                <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                  every{" "}
-                </span>
-                order in one place.
-              </h1>
-              <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg md:mt-5 md:text-lg md:leading-relaxed">
-                PharmaHub connects retailers, distributors, and customers so you
-                can move medicines faster, keep shelves stocked, and stay fully
-                compliant—without jumping between systems.
-              </p>
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 md:mt-8">
-                <Button
-                  size="lg"
-                  asChild
-                  className="w-full gap-2 text-base shadow-lg sm:w-auto sm:min-w-[180px]"
-                >
-                  <Link href="/auth/login">
-                    Get started
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  asChild
-                  className="w-full sm:w-auto sm:min-w-[180px]"
-                >
-                  <Link href="/auth/login">Login to your account</Link>
-                </Button>
-              </div>
-              <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-muted-foreground sm:text-sm">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-background/80 px-3 py-1">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                  <span>Role-based dashboards</span>
-                </div>
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-background/80 px-3 py-1">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-sky-500" />
-                  <span>ERP-aligned workflows</span>
-                </div>
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-background/80 px-3 py-1">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-amber-500" />
-                  <span>Compliance-ready by design</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative flex-1">
-              <div className="pointer-events-none absolute -inset-10 -z-10 bg-[radial-gradient(circle_at_top,_hsl(var(--primary)/0.18),_transparent_55%)]" />
-              <div className="relative rounded-3xl border border-border/60 bg-background/80 p-4 shadow-xl shadow-primary/10 sm:p-5">
-                <Carousel
-                  opts={{ loop: true }}
-                  className="group"
-                  aria-label="PharmaHub in action across roles"
-                >
-                  <div className="absolute inset-x-10 top-4 z-[1] flex items-center justify-between text-[0.7rem] font-medium text-muted-foreground sm:text-xs">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-background/80 px-3 py-1">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                      Live platform visuals
-                    </span>
-                    <span className="hidden text-xs sm:inline">
-                      Swipe or use arrows to explore
-                    </span>
-                  </div>
-                  <CarouselContent className="pt-9 sm:pt-10">
-                    {heroSlides.map((slide) => (
-                      <CarouselItem key={slide.src}>
-                        <div className="overflow-hidden rounded-2xl border border-border/60 bg-muted/40">
-                          <div className="relative aspect-[16/9] w-full">
-                            <Image
-                              src={slide.src}
-                              alt={slide.alt}
-                              fill
-                              sizes="(min-width: 1024px) 520px, (min-width: 768px) 60vw, 100vw"
-                              className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-                              priority
-                            />
-                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent mix-blend-multiply" />
-                          </div>
-                          <div className="flex flex-col gap-1.5 px-4 py-3 text-left sm:px-5 sm:py-3.5">
-                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary/90 sm:text-[0.72rem]">
-                              {slide.label}
-                            </p>
-                            <p className="text-xs text-muted-foreground sm:text-sm">
-                              {slide.description}
-                            </p>
-                          </div>
-                        </div>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                  <CarouselPrevious className="-left-3 top-1/2 hidden translate-y-0 bg-background/95 shadow-sm ring-1 ring-border/80 hover:bg-background sm:flex" />
-                  <CarouselNext className="-right-3 top-1/2 hidden translate-y-0 bg-background/95 shadow-sm ring-1 ring-border/80 hover:bg-background sm:flex" />
-                </Carousel>
-              </div>
-            </div>
-          </div>
-        </section>
+        <LandingHero />
 
         {/* Role cards */}
         <section className="px-4 py-14 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
@@ -473,10 +331,10 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Operations video stripe (desktop / tablet only) */}
+        {/* Operations video stripe */}
         <section className="relative border-t border-border/40 bg-black px-4 py-14 sm:px-6 sm:py-20 lg:px-0">
-          {/* Desktop / tablet video as subtle background */}
-          <div className="absolute inset-0 hidden overflow-hidden md:block">
+          {/* Video as subtle background */}
+          <div className="absolute inset-0 overflow-hidden">
             <video
               className="h-full w-full object-cover opacity-70"
               autoPlay
@@ -484,17 +342,6 @@ export default function HomePage() {
               loop
               playsInline
               src="/videos/v1.mp4"
-            />
-          </div>
-          {/* Mobile fallback image (no video on small screens) */}
-          <div className="absolute inset-0 md:hidden">
-            <Image
-              src="/images/home-hero-office.jpeg"
-              alt="PharmaHub in action inside a pharmacy"
-              fill
-              sizes="100vw"
-              className="object-cover"
-              priority
             />
           </div>
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/40" />

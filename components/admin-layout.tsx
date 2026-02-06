@@ -17,6 +17,7 @@ import {
   LifeBuoy,
   BarChart3,
   FileText,
+  FileCheck,
   RefreshCw,
   LogOut,
   Sun,
@@ -41,6 +42,7 @@ import {
 const menuItems = [
   { title: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard", id: "dashboard" },
   { title: "Users", icon: Users, href: "/admin/users", id: "users" },
+  { title: "KYC", icon: FileCheck, href: "/admin/kyc", id: "kyc" },
   { title: "Products", icon: Package, href: "/admin/products", id: "products" },
   { title: "Orders", icon: ClipboardList, href: "/admin/orders", id: "orders" },
   { title: "Feature Flags", icon: Settings, href: "/admin/feature-flags", id: "feature-flags" },

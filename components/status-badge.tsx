@@ -35,6 +35,8 @@ export type StatusType =
   | 'OUT'
   | 'PENDING_APPROVAL'
   | 'APPROVED'
+  | 'REJECTED'
+  | 'RESUBMIT'
   | 'CONSOLIDATED'
   | 'ALLOCATED'
   | 'SHIPPED'
@@ -78,6 +80,8 @@ const statusConfig: Record<StatusType, { label: string; variant: 'default' | 'se
   OUT: { label: 'Out', variant: 'destructive', icon: XCircle },
   PENDING_APPROVAL: { label: 'Pending Approval', variant: 'secondary', icon: Clock },
   APPROVED: { label: 'Approved', variant: 'default', icon: CheckCircle2 },
+  REJECTED: { label: 'Rejected', variant: 'destructive', icon: XCircle },
+  RESUBMIT: { label: 'Resubmit', variant: 'secondary', icon: AlertCircle },
   CONSOLIDATED: { label: 'Consolidated', variant: 'outline', icon: PackageCheck },
   ALLOCATED: { label: 'Allocated', variant: 'outline', icon: PackageCheck },
   SHIPPED: { label: 'Shipped', variant: 'default', icon: Truck },
