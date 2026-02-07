@@ -1,7 +1,7 @@
 "use client"
 
 import * as THREE from "three"
-import React, { useMemo, useState, useRef } from "react"
+import React, { useMemo, useState, useRef, useEffect } from "react"
 import { createPortal, useFrame, type ThreeElements } from "@react-three/fiber"
 import { useFBO } from "@react-three/drei"
 import * as easing from "maath/easing"
@@ -48,11 +48,13 @@ export function Particles({
 
   // Create simulation material with scale parameter
   const simulationMaterialRef = useRef<SimulationMaterial | null>(null)
-  const simulationMaterial = useMemo(() => {
-    const mat = new SimulationMaterial(planeScale)
-    simulationMaterialRef.current = mat
-    return mat
-  }, [planeScale])
+  const simulationMaterial = useMemo(
+    () => new SimulationMaterial(planeScale),
+    [planeScale]
+  )
+  useEffect(() => {
+    simulationMaterialRef.current = simulationMaterial
+  }, [simulationMaterial])
 
   const target = useFBO(size, size, {
     minFilter: THREE.NearestFilter,
@@ -66,9 +68,11 @@ export function Particles({
     const m = new DofPointsMaterial()
     m.uniforms.positions.value = target.texture
     m.uniforms.initialPositions.value = simulationMaterial.uniforms.positions.value
-    dofPointsMaterialRef.current = m
     return m
   }, [simulationMaterial, target.texture])
+  useEffect(() => {
+    dofPointsMaterialRef.current = dofPointsMaterial
+  }, [dofPointsMaterial])
 
   const [scene] = useState(() => new THREE.Scene())
   const [camera] = useState(
