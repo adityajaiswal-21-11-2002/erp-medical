@@ -305,7 +305,7 @@ export default function HomePage() {
 
         {/* How it works + key capabilities */}
         <section className="border-y border-border/40 bg-muted/20 px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
-          <div className="mx-auto flex max-w-6xl flex-col gap-10 lg:flex-row lg:items-start">
+          <div className="mx-auto flex max-w-7xl flex-col gap-10 lg:flex-row lg:items-start lg:gap-16">
             <div className="max-w-xl">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary/80 sm:text-sm">
                 How PharmaHub fits in
@@ -353,38 +353,9 @@ export default function HomePage() {
               </ol>
             </div>
 
-            <div className="flex-1 space-y-4">
-              {/* Care & Awards images */}
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="relative overflow-hidden rounded-2xl border border-border/60 shadow-sm">
-                  <Image
-                    src="/images/home-hero-care.jpeg"
-                    alt="Patient care and healthcare delivery"
-                    width={400}
-                    height={260}
-                    className="h-48 w-full object-cover sm:h-52"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <p className="absolute bottom-4 left-4 right-4 text-sm font-semibold text-white">
-                    Built for Indian pharma
-                  </p>
-                </div>
-                <div className="relative overflow-hidden rounded-2xl border border-border/60 shadow-sm">
-                  <Image
-                    src="/images/home-hero-awards.jpeg"
-                    alt="Industry recognition and excellence"
-                    width={400}
-                    height={260}
-                    className="h-48 w-full object-cover sm:h-52"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <p className="absolute bottom-4 left-4 right-4 text-sm font-semibold text-white">
-                    Trusted by leading networks
-                  </p>
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl border border-border/60 bg-background/80 p-5 shadow-sm">
+            <div className="flex-1 min-w-0 space-y-4">
+              <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
+                <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-md transition-shadow hover:shadow-lg lg:p-8">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary/80">
                     Built for Indian pharma
                   </p>
@@ -403,7 +374,7 @@ export default function HomePage() {
                     </li>
                   </ul>
                 </div>
-                <div className="rounded-2xl border border-border/60 bg-background/80 p-5 shadow-sm">
+                <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-md transition-shadow hover:shadow-lg lg:p-8">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary/80">
                     Operational safeguards
                   </p>
@@ -433,12 +404,38 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Built for Indian pharma - full-width image section */}
+        <section className="relative min-h-[400px] overflow-hidden sm:min-h-[500px] lg:min-h-[560px]">
+          <Image
+            src="/images/home-hero-care.jpeg"
+            alt="Patient care and healthcare delivery"
+            fill
+            className="object-cover object-center"
+            sizes="100vw"
+            priority={false}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-transparent" />
+          <div className="relative z-10 flex min-h-[400px] flex-col justify-center px-4 py-16 sm:min-h-[500px] sm:px-6 sm:py-20 lg:min-h-[560px] lg:px-16">
+            <div className="max-w-xl rounded-2xl border border-white/10 bg-black/60 px-6 py-8 backdrop-blur-md sm:px-8 sm:py-10">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white sm:text-sm">
+                Built for Indian pharma
+              </p>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl md:text-4xl [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]">
+                Schemes, returns, and GST-ready docs out of the box.
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-white/95 sm:text-base [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]">
+                Role-based access for retail, distribution and admin teams. Supports schemes, returns and credit notes—GST-ready invoices and documentation.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Operations video stripe */}
         <section className="relative overflow-hidden border-t border-border/40 bg-black px-4 py-16 sm:px-6 sm:py-24 lg:px-0">
           {/* Video as subtle background */}
           <div className="absolute inset-0 overflow-hidden">
             <video
-              className="h-full w-full object-cover opacity-70"
+              className="h-full w-full object-cover opacity-50"
               autoPlay
               muted
               loop
@@ -446,30 +443,58 @@ export default function HomePage() {
               src="/videos/v2.mp4"
             />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/40" />
+          {/* Strong overlay so text is visible */}
+          <div className="absolute inset-0 bg-black/70" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/40" />
 
-          <div className="relative mx-auto flex max-w-6xl flex-col gap-10 px-0 md:flex-row md:items-center md:px-8">
-            <div className="max-w-xl text-primary-foreground">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary/80 sm:text-sm">
+          <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 sm:px-6 md:flex-row md:items-center md:px-8 md:py-16">
+            <div className="max-w-xl rounded-2xl border border-white/10 bg-black/70 px-6 py-8 backdrop-blur-md md:px-8 md:py-10">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white sm:text-sm">
                 Live operations in motion
               </p>
-              <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl md:text-4xl [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
                 Watch a full order journey from cart to settlement.
               </h2>
-              <p className="mt-4 text-sm leading-relaxed text-primary-foreground/80 sm:text-base">
+              <p className="mt-4 text-sm leading-relaxed text-white sm:text-base [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]">
                 See how retailers, distributors and finance teams all interact with the same
                 platform—without leaving their workflows or losing data between systems.
               </p>
-              <div className="mt-6 grid gap-4 text-sm text-primary-foreground/85 sm:grid-cols-2 sm:text-base">
+              <div className="mt-6 grid gap-4 text-sm text-white sm:grid-cols-2 sm:text-base [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]">
                 <div className="space-y-1">
-                  <p className="font-semibold text-primary-foreground">Retail counters</p>
-                  <p>Fast cart creation, offer visibility and accurate invoicing for every bill.</p>
+                  <p className="font-semibold text-white">Retail counters</p>
+                  <p className="text-white/95">Fast cart creation, offer visibility and accurate invoicing for every bill.</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="font-semibold text-primary-foreground">Back-office teams</p>
-                  <p>Dispatch, credit notes and settlements mapped cleanly to your ERP.</p>
+                  <p className="font-semibold text-white">Back-office teams</p>
+                  <p className="text-white/95">Dispatch, credit notes and settlements mapped cleanly to your ERP.</p>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Trusted by leading networks - full-width image section */}
+        <section className="relative min-h-[400px] overflow-hidden sm:min-h-[500px] lg:min-h-[560px]">
+          <Image
+            src="/images/home-hero-awards.jpeg"
+            alt="Industry recognition and excellence"
+            fill
+            className="object-cover object-center"
+            sizes="100vw"
+            priority={false}
+          />
+          <div className="absolute inset-0 bg-gradient-to-l from-black/85 via-black/50 to-transparent" />
+          <div className="relative z-10 flex min-h-[400px] flex-col items-end justify-center px-4 py-16 sm:min-h-[500px] sm:px-6 sm:py-20 lg:min-h-[560px] lg:px-16">
+            <div className="max-w-xl rounded-2xl border border-white/10 bg-black/60 px-6 py-8 backdrop-blur-md sm:px-8 sm:py-10">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white sm:text-sm">
+                Trusted by leading networks
+              </p>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl md:text-4xl [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]">
+                Trusted by pharma networks across India.
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-white/95 sm:text-base [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]">
+                Join retailers, distributors and central teams who rely on PharmaHub for full compliance and control.
+              </p>
             </div>
           </div>
         </section>
@@ -539,10 +564,10 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Metrics + leadership stripe */}
-        <section className="border-t border-border/40 bg-gradient-to-b from-muted/40 to-muted/20 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
-          <div className="mx-auto flex max-w-6xl flex-col gap-10 lg:flex-row lg:items-center">
-            <div className="grid flex-1 gap-6 sm:grid-cols-3">
+        {/* Metrics cards */}
+        <section className="border-t border-border/40 bg-gradient-to-b from-muted/40 to-muted/20 px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+          <div className="mx-auto max-w-6xl">
+            <div className="grid gap-6 sm:grid-cols-3">
               {[
                 { label: "Order accuracy", value: "99.5%", desc: "Reduce manual errors with consistent, guided flows for every role.", accent: "border-l-emerald-500" },
                 { label: "Time to dispatch", value: "-40%", desc: "Speed up picking, packing and invoicing with a single source of truth.", accent: "border-l-blue-500" },
@@ -551,44 +576,67 @@ export default function HomePage() {
                 <div
                   key={stat.label}
                   className={cn(
-                    "relative overflow-hidden rounded-2xl border border-border/60 border-l-4 bg-background/80 p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg",
+                    "relative overflow-hidden rounded-2xl border border-border/60 border-l-4 bg-card p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl lg:p-8",
                     stat.accent
                   )}
                 >
-                  <p className="text-xs font-medium uppercase tracking-[0.16em] text-primary/80">{stat.label}</p>
-                  <p className="mt-3 text-3xl font-bold text-foreground sm:text-4xl">{stat.value}</p>
-                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground sm:text-sm">{stat.desc}</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary/80">{stat.label}</p>
+                  <p className="mt-4 text-3xl font-bold text-foreground sm:text-4xl">{stat.value}</p>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{stat.desc}</p>
                 </div>
               ))}
             </div>
+          </div>
+        </section>
 
-            <div className="flex-1">
-              <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-black/80 shadow-lg shadow-primary/5">
-                <div className="relative aspect-[21/9] w-full">
-                  <Image
-                    src="/images/home-hero-boardroom.jpeg"
-                    alt="Leadership team reviewing PharmaHub dashboards"
-                    fill
-                    sizes="(min-width: 1024px) 640px, 100vw"
-                    className="object-cover"
-                    priority
-                  />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
-                  <div className="pointer-events-none absolute inset-y-4 left-4 flex max-w-md flex-col justify-center gap-2 text-xs text-primary-foreground sm:inset-y-6 sm:left-6 sm:text-sm">
-                    <span className="inline-flex w-fit items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-[0.7rem] font-medium uppercase tracking-[0.16em]">
-                      Board-ready visibility
-                    </span>
-                    <p className="text-sm font-semibold sm:text-base">
-                      Give leadership a live view of orders, revenue and service levels across the
-                      network.
-                    </p>
-                    <p className="text-xs text-muted-foreground sm:text-sm">
-                      Visual dashboards and exports keep finance, operations and compliance aligned
-                      on the same data.
-                    </p>
-                  </div>
-                </div>
-              </div>
+        {/* Leadership & Board visibility - full-width image section */}
+        <section className="relative min-h-[400px] overflow-hidden sm:min-h-[500px] lg:min-h-[560px]">
+          <Image
+            src="/images/home-hero-boardroom.jpeg"
+            alt="Leadership team reviewing PharmaHub dashboards"
+            fill
+            className="object-cover object-center"
+            sizes="100vw"
+            priority={false}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/40" />
+          <div className="relative z-10 flex min-h-[400px] flex-col justify-end px-4 pb-16 pt-24 sm:min-h-[500px] sm:px-6 sm:pb-20 sm:pt-28 lg:min-h-[560px] lg:px-16 lg:pb-24">
+            <div className="max-w-xl rounded-2xl border border-white/10 bg-black/60 px-6 py-8 backdrop-blur-md sm:px-8 sm:py-10">
+              <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-medium uppercase tracking-[0.16em] text-white backdrop-blur-sm">
+                Board-ready visibility
+              </span>
+              <h2 className="mt-4 text-2xl font-bold tracking-tight text-white sm:text-3xl md:text-4xl [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]">
+                Give leadership a live view of orders, revenue and service levels.
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-white/95 sm:text-base [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]">
+                Visual dashboards and exports keep finance, operations and compliance aligned on the same data.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Operations & Office - full-width image section */}
+        <section className="relative min-h-[400px] overflow-hidden sm:min-h-[500px] lg:min-h-[560px]">
+          <Image
+            src="/images/home-hero-office.jpeg"
+            alt="PharmaHub office operations"
+            fill
+            className="object-cover object-center"
+            sizes="100vw"
+            priority={false}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-transparent" />
+          <div className="relative z-10 flex min-h-[400px] flex-col justify-center px-4 py-16 sm:min-h-[500px] sm:px-6 sm:py-20 lg:min-h-[560px] lg:px-16">
+            <div className="max-w-xl rounded-2xl border border-white/10 bg-black/60 px-6 py-8 backdrop-blur-md sm:px-8 sm:py-10">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white sm:text-sm">
+                Modern operations
+              </p>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl md:text-4xl [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]">
+                One platform for your entire pharma network.
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-white/95 sm:text-base [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]">
+                Retailers, distributors, and central teams—connected on a single digital rail with full compliance and control.
+              </p>
             </div>
           </div>
         </section>
