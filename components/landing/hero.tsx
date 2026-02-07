@@ -15,8 +15,8 @@ export function LandingHero() {
       {/* Particles background */}
       <GL hovering={hovering} />
 
-      {/* Overlay gradient for readability */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black via-black/60 to-black/90" />
+      {/* Overlay gradient for readability - lighter so particles show through */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/90 via-black/30 to-black/80" />
 
       <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-end px-4 pb-16 pt-28 text-center sm:pt-32 md:pt-40">
         <Pill className="mb-6">PharmaHub · Beta</Pill>
