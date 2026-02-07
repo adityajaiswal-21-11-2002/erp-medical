@@ -15,6 +15,12 @@ import {
   LogOut,
   ArrowRight,
   CheckCircle2,
+  Zap,
+  BarChart3,
+  FileCheck,
+  Users,
+  Quote,
+  Star,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { LandingHero } from "@/components/landing/hero"
@@ -173,11 +179,78 @@ export default function HomePage() {
       <main className="flex-1">
         <LandingHero />
 
-        {/* Role cards */}
-        <section className="px-4 py-14 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+        {/* Features strip - Why PharmaHub */}
+        <section className="border-y border-border/40 bg-gradient-to-b from-background to-muted/20 px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
           <div className="mx-auto max-w-6xl">
             <div className="text-center">
-              <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/80 sm:text-sm">
+                Why PharmaHub
+              </p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
+                Built for speed, scale, and compliance
+              </h2>
+            </div>
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:mt-16 lg:grid-cols-4">
+              {[
+                {
+                  icon: Zap,
+                  title: "Real-time sync",
+                  desc: "Live inventory, pricing, and order status across your entire network.",
+                  accent: "from-amber-500/20 to-amber-600/10",
+                  iconBg: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+                },
+                {
+                  icon: BarChart3,
+                  title: "Smart analytics",
+                  desc: "Revenue, margins, and scheme performance at your fingertips.",
+                  accent: "from-emerald-500/20 to-emerald-600/10",
+                  iconBg: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+                },
+                {
+                  icon: FileCheck,
+                  title: "GST-ready docs",
+                  desc: "Invoices, credit notes, and e-way bills generated automatically.",
+                  accent: "from-blue-500/20 to-blue-600/10",
+                  iconBg: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+                },
+                {
+                  icon: Users,
+                  title: "Role-based access",
+                  desc: "Retail, distribution, and admin—each with the right permissions.",
+                  accent: "from-violet-500/20 to-violet-600/10",
+                  iconBg: "bg-violet-500/15 text-violet-600 dark:text-violet-400",
+                },
+              ].map((item) => {
+                const Icon = item.icon
+                return (
+                  <div
+                    key={item.title}
+                    className={cn(
+                      "group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5",
+                      "hover:border-primary/20"
+                    )}
+                  >
+                    <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity group-hover:opacity-100", item.accent)} />
+                    <div className={cn("relative flex h-11 w-11 items-center justify-center rounded-xl", item.iconBg)}>
+                      <Icon className="h-5 w-5" strokeWidth={2} />
+                    </div>
+                    <h3 className="relative mt-4 font-semibold text-foreground">{item.title}</h3>
+                    <p className="relative mt-2 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* Role cards */}
+        <section className="relative px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-28">
+          <div className="mx-auto max-w-6xl">
+            <div className="text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/80 sm:text-sm">
+                Choose your role
+              </p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
                 Built for every part of the supply chain
               </h2>
               <p className="mx-auto mt-3 max-w-2xl text-base text-muted-foreground sm:text-lg">
@@ -193,25 +266,25 @@ export default function HomePage() {
                     key={card.href}
                     href={card.href}
                     className={cn(
-                      "group relative flex flex-col rounded-2xl border border-border/60 bg-card p-6 text-left shadow-sm transition-all duration-300",
-                      "hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5",
+                      "group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card p-6 text-left shadow-sm transition-all duration-300",
+                      "hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-2",
                       "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background",
-                      "min-h-[200px] sm:min-h-[220px]"
+                      "min-h-[220px] sm:min-h-[240px]"
                     )}
                   >
                     <div
                       className={cn(
-                        "absolute inset-0 rounded-2xl bg-gradient-to-br opacity-0 transition-opacity group-hover:opacity-100",
+                        "absolute inset-0 rounded-2xl bg-gradient-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-100",
                         card.gradient
                       )}
                     />
                     <div
                       className={cn(
-                        "relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-105",
+                        "relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110",
                         card.iconBg
                       )}
                     >
-                      <Icon className="h-6 w-6" strokeWidth={2} />
+                      <Icon className="h-7 w-7" strokeWidth={2} />
                     </div>
                     <h3 className="relative mt-4 text-lg font-semibold text-foreground sm:text-xl">
                       {card.title}
@@ -231,7 +304,7 @@ export default function HomePage() {
         </section>
 
         {/* How it works + key capabilities */}
-        <section className="border-y border-border/40 bg-muted/20 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+        <section className="border-y border-border/40 bg-muted/20 px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
           <div className="mx-auto flex max-w-6xl flex-col gap-10 lg:flex-row lg:items-start">
             <div className="max-w-xl">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary/80 sm:text-sm">
@@ -281,6 +354,35 @@ export default function HomePage() {
             </div>
 
             <div className="flex-1 space-y-4">
+              {/* Care & Awards images */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="relative overflow-hidden rounded-2xl border border-border/60 shadow-sm">
+                  <Image
+                    src="/images/home-hero-care.jpeg"
+                    alt="Patient care and healthcare delivery"
+                    width={400}
+                    height={260}
+                    className="h-48 w-full object-cover sm:h-52"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <p className="absolute bottom-4 left-4 right-4 text-sm font-semibold text-white">
+                    Built for Indian pharma
+                  </p>
+                </div>
+                <div className="relative overflow-hidden rounded-2xl border border-border/60 shadow-sm">
+                  <Image
+                    src="/images/home-hero-awards.jpeg"
+                    alt="Industry recognition and excellence"
+                    width={400}
+                    height={260}
+                    className="h-48 w-full object-cover sm:h-52"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <p className="absolute bottom-4 left-4 right-4 text-sm font-semibold text-white">
+                    Trusted by leading networks
+                  </p>
+                </div>
+              </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-2xl border border-border/60 bg-background/80 p-5 shadow-sm">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary/80">
@@ -332,7 +434,7 @@ export default function HomePage() {
         </section>
 
         {/* Operations video stripe */}
-        <section className="relative border-t border-border/40 bg-black px-4 py-14 sm:px-6 sm:py-20 lg:px-0">
+        <section className="relative overflow-hidden border-t border-border/40 bg-black px-4 py-16 sm:px-6 sm:py-24 lg:px-0">
           {/* Video as subtle background */}
           <div className="absolute inset-0 overflow-hidden">
             <video
@@ -341,7 +443,7 @@ export default function HomePage() {
               muted
               loop
               playsInline
-              src="/videos/v1.mp4"
+              src="/videos/v2.mp4"
             />
           </div>
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/40" />
@@ -372,37 +474,92 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Testimonials */}
+        <section className="border-y border-border/40 bg-muted/30 px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+          <div className="mx-auto max-w-6xl">
+            <div className="text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/80 sm:text-sm">
+                What our partners say
+              </p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
+                Trusted by pharma networks across India
+              </h2>
+            </div>
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:mt-16 lg:grid-cols-3">
+              {[
+                { quote: "PharmaHub cut our order processing time by half. Our retailers love the guided cart and scheme visibility.", author: "Distribution Lead", role: "Regional distributor" },
+                { quote: "One source of truth for finance, compliance, and operations. No more spreadsheet chaos.", author: "Finance Director", role: "Central team" },
+                { quote: "Clean orders, accurate invoicing, and GST-ready docs out of the box. A game-changer for our retail network.", author: "Retail Ops Manager", role: "Pharma chain" },
+              ].map((testimonial, i) => (
+                <div
+                  key={i}
+                  className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-lg"
+                >
+                  <Quote className="absolute right-4 top-4 h-8 w-8 text-primary/10" />
+                  <div className="flex gap-1 text-amber-500">
+                    {[...Array(5)].map((_, j) => (
+                      <Star key={j} className="h-4 w-4 fill-current" strokeWidth={0} />
+                    ))}
+                  </div>
+                  <p className="relative mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                    &ldquo;{testimonial.quote}&rdquo;
+                  </p>
+                  <div className="mt-4 flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <span className="text-sm font-semibold text-primary">{testimonial.author.charAt(0)}</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{testimonial.author}</p>
+                      <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Integrations / Trusted strip */}
+        <section className="border-y border-border/40 bg-background px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+          <div className="mx-auto max-w-6xl">
+            <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground sm:text-sm">
+              Integrates with your existing stack
+            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-8 sm:gap-12 lg:gap-16">
+              {["ERP Systems", "Accounting Software", "Inventory APIs", "GST Portal", "Payment Gateways"].map((label) => (
+                <div
+                  key={label}
+                  className="flex items-center gap-2 rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground"
+                >
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  {label}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Metrics + leadership stripe */}
-        <section className="border-t border-border/40 bg-muted/40 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+        <section className="border-t border-border/40 bg-gradient-to-b from-muted/40 to-muted/20 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
           <div className="mx-auto flex max-w-6xl flex-col gap-10 lg:flex-row lg:items-center">
             <div className="grid flex-1 gap-6 sm:grid-cols-3">
-              <div className="rounded-2xl border border-border/60 bg-background/80 p-5 shadow-sm">
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-primary/80">
-                  Order accuracy
-                </p>
-                <p className="mt-3 text-3xl font-semibold text-foreground">99.5%</p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Reduce manual errors with consistent, guided flows for every role.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-border/60 bg-background/80 p-5 shadow-sm">
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-primary/80">
-                  Time to dispatch
-                </p>
-                <p className="mt-3 text-3xl font-semibold text-foreground">-40%</p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Speed up picking, packing and invoicing with a single source of truth.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-border/60 bg-background/80 p-5 shadow-sm">
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-primary/80">
-                  Happy stakeholders
-                </p>
-                <p className="mt-3 text-3xl font-semibold text-foreground">4.9</p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Simple UX that works for retailers, distributors, and central teams.
-                </p>
-              </div>
+              {[
+                { label: "Order accuracy", value: "99.5%", desc: "Reduce manual errors with consistent, guided flows for every role.", accent: "border-l-emerald-500" },
+                { label: "Time to dispatch", value: "-40%", desc: "Speed up picking, packing and invoicing with a single source of truth.", accent: "border-l-blue-500" },
+                { label: "Happy stakeholders", value: "4.9", desc: "Simple UX that works for retailers, distributors, and central teams.", accent: "border-l-amber-500" },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className={cn(
+                    "relative overflow-hidden rounded-2xl border border-border/60 border-l-4 bg-background/80 p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg",
+                    stat.accent
+                  )}
+                >
+                  <p className="text-xs font-medium uppercase tracking-[0.16em] text-primary/80">{stat.label}</p>
+                  <p className="mt-3 text-3xl font-bold text-foreground sm:text-4xl">{stat.value}</p>
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground sm:text-sm">{stat.desc}</p>
+                </div>
+              ))}
             </div>
 
             <div className="flex-1">
@@ -437,10 +594,10 @@ export default function HomePage() {
         </section>
 
         {/* CTA */}
-        <section className="border-t border-border/40 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+        <section className="border-t border-border/40 bg-gradient-to-b from-muted/20 to-background px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
           <div className="mx-auto max-w-3xl">
-            <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-muted/50 to-muted/30 px-6 py-12 text-center sm:px-10 sm:py-14">
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,hsl(var(--primary)/0.06),transparent)]" />
+            <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-primary/5 via-muted/50 to-primary/10 px-6 py-12 text-center shadow-xl sm:px-10 sm:py-16">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_50%,hsl(var(--primary)/0.08),transparent)]" />
               <div className="relative">
                 <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/80 px-4 py-2 text-sm text-muted-foreground shadow-sm">
                   <CheckCircle2 className="h-4 w-4 text-primary" />
@@ -455,7 +612,7 @@ export default function HomePage() {
                 </p>
                 <Button
                   size="lg"
-                  className="mt-6 gap-2 shadow-md sm:mt-8"
+                  className="mt-6 gap-2 shadow-lg transition-all hover:scale-[1.02] sm:mt-8"
                   asChild
                 >
                   <Link href="/auth/login">
@@ -469,9 +626,9 @@ export default function HomePage() {
         </section>
 
         {/* Footer */}
-        <footer className="border-t border-border/40 bg-muted/20 px-4 py-8 sm:px-6 lg:px-8">
+        <footer className="border-t border-border/40 bg-muted/30 px-4 py-12 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-6xl">
-            <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
+            <div className="flex flex-col items-center justify-between gap-8 sm:flex-row">
               <Link
                 href="/"
                 className="flex items-center gap-2 text-foreground hover:opacity-90"
