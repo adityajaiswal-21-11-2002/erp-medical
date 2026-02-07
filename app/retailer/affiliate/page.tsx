@@ -5,24 +5,37 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Copy, MessageCircle, TrendingUp, Users, Link as LinkIcon } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Copy, MessageCircle, TrendingUp, Users, Link as LinkIcon, Store, User, Truck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
 
+type ReferralType = 'retailer' | 'customer' | 'distributor'
+
+const REFERRAL_TYPES: { id: ReferralType; label: string; path: string; icon: typeof Store }[] = [
+  { id: 'retailer', label: 'Retailer', path: '/retailer', icon: Store },
+  { id: 'customer', label: 'Customer', path: '/customer', icon: User },
+  { id: 'distributor', label: 'Distributor', path: '/distributor', icon: Truck },
+]
+
 export default function AffiliatePage() {
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState<ReferralType | null>(null)
   const [referralCode, setReferralCode] = useState("REF-XXXX")
   const [stats, setStats] = useState({ clicks: 0, attributedOrders: 0 })
-  const referralLink =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/customer?ref=${referralCode}`
-      : `https://pharmahub.in/customer?ref=${referralCode}`
+  const [selectedType, setSelectedType] = useState<ReferralType>('customer')
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(referralLink)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  const getReferralLink = (type: ReferralType) => {
+    const base = typeof window !== "undefined" ? window.location.origin : "https://pharmahub.in"
+    const config = REFERRAL_TYPES.find((t) => t.id === type)
+    return `${base}${config?.path || '/customer'}?ref=${referralCode}`
+  }
+
+  const handleCopyLink = (type: ReferralType) => {
+    navigator.clipboard.writeText(getReferralLink(type))
+    setCopied(type)
+    toast.success("Link copied to clipboard")
+    setTimeout(() => setCopied(null), 2000)
   }
 
   const affiliateStats = [
@@ -52,34 +65,72 @@ export default function AffiliatePage() {
     <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Affiliate Program</h1>
-            <p className="text-muted-foreground mt-2">Earn commission by referring other retailers</p>
+            <p className="text-muted-foreground mt-2">Earn commission by referring retailers, customers, or distributors</p>
           </div>
 
-          {/* Referral Link Generator */}
+          {/* Referral Link Generator - Separate links per type */}
           <Card className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-800">
             <CardHeader>
-              <CardTitle>Your Referral Link</CardTitle>
+              <CardTitle>Your Referral Links</CardTitle>
               <CardDescription className="text-emerald-700 dark:text-emerald-300">
-                Share this link to earn 5% commission on referred orders
+                Get separate referral links for each audience. Share the right link to earn 5% commission.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input value={referralLink} readOnly className="bg-white dark:bg-slate-950" />
-                <Button onClick={handleCopyLink} className="shrink-0 gap-2">
-                  <Copy className="w-4 h-4" />
-                  {copied ? 'Copied!' : 'Copy'}
-                </Button>
-              </div>
+              <Tabs value={selectedType} onValueChange={(v) => setSelectedType(v as ReferralType)}>
+                <TabsList className="grid w-full grid-cols-3">
+                  {REFERRAL_TYPES.map((t) => {
+                    const Icon = t.icon
+                    return (
+                      <TabsTrigger key={t.id} value={t.id} className="gap-2">
+                        <Icon className="w-4 h-4" />
+                        {t.label}
+                      </TabsTrigger>
+                    )
+                  })}
+                </TabsList>
+                {REFERRAL_TYPES.map((t) => (
+                  <TabsContent key={t.id} value={t.id} className="mt-4">
+                    <div className="space-y-3">
+                      <p className="text-sm text-muted-foreground">
+                        Referral link for <strong>{t.label}s</strong>
+                      </p>
+                      <div className="flex gap-2">
+                        <Input
+                          value={getReferralLink(t.id)}
+                          readOnly
+                          className="bg-white dark:bg-slate-950 font-mono text-sm"
+                        />
+                        <Button onClick={() => handleCopyLink(t.id)} className="shrink-0 gap-2">
+                          <Copy className="w-4 h-4" />
+                          {copied === t.id ? 'Copied!' : 'Copy'}
+                        </Button>
+                      </div>
+                    </div>
+                  </TabsContent>
+                ))}
+              </Tabs>
 
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1 bg-transparent gap-2">
+              <div className="flex gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1 bg-transparent gap-2"
+                  onClick={() => {
+                    const link = getReferralLink(selectedType)
+                    const wa = `https://wa.me/?text=${encodeURIComponent(link)}`
+                    window.open(wa, '_blank')
+                  }}
+                >
                   <MessageCircle className="w-4 h-4" />
                   Share on WhatsApp
                 </Button>
-                <Button variant="outline" className="flex-1 bg-transparent gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1 bg-transparent gap-2"
+                  onClick={() => handleCopyLink(selectedType)}
+                >
                   <LinkIcon className="w-4 h-4" />
-                  Share Link
+                  Copy Link
                 </Button>
               </div>
             </CardContent>

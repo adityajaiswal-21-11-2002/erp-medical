@@ -3,8 +3,6 @@
 import { useState } from "react"
 import {
   AlertTriangle,
-  TrendingUp,
-  Package,
   Eye,
   Edit,
   Trash2,
@@ -13,6 +11,7 @@ import {
   Download,
   Clock,
   CheckCircle2,
+  ImageOff,
 } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,20 +19,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import {
   Dialog,
   DialogContent,
@@ -45,6 +30,7 @@ import {
 const productsMockData = [
   {
     id: "SKU001",
+    photoBase64: null as string | null,
     name: "Aspirin 500mg Tablets",
     category: "Pain Relief",
     manufacturer: "BioPharm Ltd",
@@ -58,6 +44,7 @@ const productsMockData = [
   },
   {
     id: "SKU002",
+    photoBase64: null as string | null,
     name: "Vitamin C 1000mg",
     category: "Supplements",
     manufacturer: "HealthCo Pharma",
@@ -71,6 +58,7 @@ const productsMockData = [
   },
   {
     id: "SKU003",
+    photoBase64: null as string | null,
     name: "Amoxicillin 500mg",
     category: "Antibiotics",
     manufacturer: "PharmaGlobal",
@@ -84,6 +72,7 @@ const productsMockData = [
   },
   {
     id: "SKU004",
+    photoBase64: null as string | null,
     name: "Metformin 500mg",
     category: "Diabetes Care",
     manufacturer: "MediCare Solutions",
@@ -97,6 +86,7 @@ const productsMockData = [
   },
   {
     id: "SKU005",
+    photoBase64: null as string | null,
     name: "Atorvastatin 20mg",
     category: "Cardiac Care",
     manufacturer: "CarePharm",
@@ -110,6 +100,7 @@ const productsMockData = [
   },
   {
     id: "SKU006",
+    photoBase64: null as string | null,
     name: "Cetirizine 10mg",
     category: "Allergy Relief",
     manufacturer: "BioScience Inc",
@@ -249,7 +240,7 @@ export function ProductCatalog() {
         </Button>
       </div>
 
-      {/* Tabs and Table */}
+      {/* Tabs and Product Cards */}
       <Tabs value={statusFilter} onValueChange={setStatusFilter}>
         <TabsList className="grid grid-cols-5 w-full">
           <TabsTrigger value="all">All ({stats.total})</TabsTrigger>
@@ -266,93 +257,95 @@ export function ProductCatalog() {
               <CardDescription>Click on a product to view details</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader className="bg-muted/50">
-                    <TableRow>
-                      <TableHead className="font-semibold text-xs">SKU</TableHead>
-                      <TableHead className="font-semibold text-xs">Product Name</TableHead>
-                      <TableHead className="font-semibold text-xs">Manufacturer</TableHead>
-                      <TableHead className="font-semibold text-xs">Stock Level</TableHead>
-                      <TableHead className="font-semibold text-xs">Status</TableHead>
-                      <TableHead className="font-semibold text-xs">Price</TableHead>
-                      <TableHead className="font-semibold text-xs">Expiry</TableHead>
-                      <TableHead className="w-10 font-semibold text-xs">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredProducts.map((product) => (
-                      <TableRow
-                        key={product.id}
-                        className="hover:bg-muted/50 cursor-pointer"
-                        onClick={() => {
-                          setSelectedProduct(product)
-                          setDetailsOpen(true)
-                        }}
-                      >
-                        <TableCell className="py-3 text-sm font-medium text-blue-600">{product.id}</TableCell>
-                        <TableCell className="py-3 text-sm">{product.name}</TableCell>
-                        <TableCell className="py-3 text-sm text-muted-foreground">{product.manufacturer}</TableCell>
-                        <TableCell className="py-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className={`h-full rounded-full ${
-                                  product.stock > product.max_stock * 0.8
-                                    ? "bg-emerald-500"
-                                    : product.stock > product.min_stock
-                                      ? "bg-amber-500"
-                                      : "bg-red-500"
-                                }`}
-                                style={{
-                                  width: `${Math.min((product.stock / product.max_stock) * 100, 100)}%`,
-                                }}
-                              />
-                            </div>
-                            <span className="text-xs font-semibold">{product.stock.toLocaleString()}</span>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {filteredProducts.map((product) => (
+                  <Card
+                    key={product.id}
+                    className="border hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
+                    onClick={() => {
+                      setSelectedProduct(product)
+                      setDetailsOpen(true)
+                    }}
+                  >
+                    <CardContent className="p-0">
+                      <div className="aspect-square bg-muted/40 flex items-center justify-center">
+                        {product.photoBase64 ? (
+                          <img
+                            src={product.photoBase64.startsWith("data:") ? product.photoBase64 : `data:image/jpeg;base64,${product.photoBase64}`}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center text-muted-foreground">
+                            <ImageOff className="w-10 h-10" />
+                            <span className="text-xs mt-1">No image</span>
                           </div>
-                        </TableCell>
-                        <TableCell className="py-3">{getStatusBadge(product.status)}</TableCell>
-                        <TableCell className="py-3 text-sm font-semibold">₹{product.price.toFixed(2)}</TableCell>
-                        <TableCell className="py-3">
-                          {product.expiry_soon ? (
-                            <Badge className="bg-orange-100 text-orange-800">Soon</Badge>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">Normal</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="py-3">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                              <Button variant="ghost" size="sm">
-                                ⋮
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Eye className="w-4 h-4 mr-2" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Edit className="w-4 h-4 mr-2" />
-                                Edit Product
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600">
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-
-                {filteredProducts.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">No products found</div>
-                )}
+                        )}
+                      </div>
+                      <div className="p-3 space-y-2">
+                        <p className="text-xs font-medium text-blue-600">{product.id}</p>
+                        <p className="text-sm font-semibold line-clamp-2">{product.name}</p>
+                        <p className="text-xs text-muted-foreground">{product.manufacturer}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold">₹{product.price.toFixed(2)}</span>
+                          {getStatusBadge(product.status)}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${
+                                product.stock > product.max_stock * 0.8
+                                  ? "bg-emerald-500"
+                                  : product.stock > product.min_stock
+                                    ? "bg-amber-500"
+                                    : "bg-red-500"
+                              }`}
+                              style={{
+                                width: `${Math.min((product.stock / product.max_stock) * 100, 100)}%`,
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs font-medium">{product.stock.toLocaleString()}</span>
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 h-8 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setSelectedProduct(product)
+                              setDetailsOpen(true)
+                            }}
+                          >
+                            <Eye className="w-3 h-3 mr-1" />
+                            View
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 text-red-600 hover:text-red-700"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
+              {filteredProducts.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">No products found</div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

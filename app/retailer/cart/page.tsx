@@ -76,7 +76,6 @@ export default function CartPage() {
                           value={item.quantity}
                           onChange={(qty) => updateQuantity(item.productId, qty)}
                           min={1}
-                          max={99}
                         />
                       </TableCell>
                       <TableCell className="text-right font-semibold">

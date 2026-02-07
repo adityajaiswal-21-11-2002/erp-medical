@@ -2,11 +2,9 @@
 
 import React, { Suspense, useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import Link from "next/link"
-import { Filter, Search, ShoppingCart } from "lucide-react"
+import { Filter, Search } from "lucide-react"
 
-import { QuantityStepper } from "@/components/quantity-stepper"
-import { Button } from "@/components/ui/button"
+import { CatalogProductCard } from "@/components/catalog-product-card"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -18,9 +16,12 @@ import { trackEvent } from "@/lib/analytics"
 type Product = {
   _id: string
   name: string
+  genericName?: string
   category: string
   mrp: number
   packaging: string
+  stockStatus?: "IN_STOCK" | "LOW" | "OUT"
+  photoBase64?: string | null
 }
 
 function CustomerCatalogContent() {
@@ -120,48 +121,25 @@ function CustomerCatalogContent() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filteredProducts.map((product) => (
-          <Card key={product._id} className="border">
-            <CardContent className="p-4 space-y-3">
-              <div className="aspect-square rounded-lg border bg-muted/40 flex items-center justify-center text-xs text-muted-foreground">
-                {product.packaging || product._id}
-              </div>
-              <div className="space-y-1">
-                <Link href={`/customer/product/${product._id}`}>
-                  <p className="text-sm font-semibold hover:underline">{product.name}</p>
-                </Link>
-                <p className="text-xs text-muted-foreground">{product.packaging}</p>
-                <p className="text-xs text-muted-foreground">{product.category}</p>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-lg font-semibold">₹{product.mrp}</span>
-                <span className="text-xs text-muted-foreground">In stock</span>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <QuantityStepper
-                  value={quantities[product._id] || 1}
-                  onChange={(value) =>
-                    setQuantities((prev) => ({ ...prev, [product._id]: value }))
-                  }
-                />
-                <Button
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => {
-                    addItem({
-                      productId: product._id,
-                      name: product.name,
-                      mrp: product.mrp,
-                      quantity: quantities[product._id] || 1,
-                    })
-                    toast.success("Added to cart")
-                  }}
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  Add to cart
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <CatalogProductCard
+            key={product._id}
+            product={product}
+            productLink={`/customer/product/${product._id}`}
+            quantity={quantities[product._id] || 1}
+            onQuantityChange={(id, value) =>
+              setQuantities((prev) => ({ ...prev, [id]: value }))
+            }
+            showQuantityStepper
+            onAddToCart={(p, qty) => {
+              addItem({
+                productId: p._id,
+                name: p.name,
+                mrp: p.mrp,
+                quantity: qty,
+              })
+              toast.success("Added to cart")
+            }}
+          />
         ))}
       </div>
     </div>
