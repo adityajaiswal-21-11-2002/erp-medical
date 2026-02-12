@@ -77,6 +77,14 @@ export async function createShipmentForOrderIdInternal(
   }
 }
 
+function getBookedByUserId(order: { bookedBy: unknown }): string | null {
+  const b = order.bookedBy
+  if (!b) return null
+  const doc = b as { _id?: { toString(): string } }
+  if (doc._id) return doc._id.toString()
+  return typeof (b as { toString?: () => string }).toString === "function" ? (b as { toString: () => string }).toString() : String(b)
+}
+
 async function assertOrderAccess(orderId: string, req: Request, allowCustomer = true) {
   const order = await Order.findById(orderId).populate("items.product")
   if (!order) throw new AppError("Order not found", 404)
@@ -84,7 +92,8 @@ async function assertOrderAccess(orderId: string, req: Request, allowCustomer = 
   const isDistributor = req.user?.accountType === "DISTRIBUTOR"
   const isRetailer = req.user?.accountType === "RETAILER"
   const isCustomer = req.user?.accountType === "CUSTOMER"
-  const isOwner = order.bookedBy.toString() === req.user?.id
+  const bookedById = getBookedByUserId(order)
+  const isOwner = bookedById === req.user?.id
   if (isAdmin || isDistributor) return order
   if (isRetailer && isOwner) return order
   if (allowCustomer && isCustomer && isOwner) return order

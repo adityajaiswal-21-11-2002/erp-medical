@@ -42,6 +42,14 @@ export async function listOrders(req: Request, res: Response) {
   return sendSuccess(res, { items, total, page, limit }, "Orders fetched")
 }
 
+function getBookedByUserId(order: { bookedBy: unknown }): string | null {
+  const b = order.bookedBy
+  if (!b) return null
+  const doc = b as { _id?: { toString(): string } }
+  if (doc._id) return doc._id.toString()
+  return typeof (b as { toString?: () => string }).toString === "function" ? (b as { toString: () => string }).toString() : String(b)
+}
+
 export async function getOrder(req: Request, res: Response) {
   const order = await Order.findById(req.params.id)
     .populate("bookedBy", "name email")
@@ -49,7 +57,8 @@ export async function getOrder(req: Request, res: Response) {
   if (!order) {
     throw new AppError("Order not found", 404)
   }
-  if (req.user?.role !== "ADMIN" && order.bookedBy.toString() !== req.user?.id) {
+  const bookedById = getBookedByUserId(order)
+  if (req.user?.role !== "ADMIN" && bookedById !== req.user?.id) {
     throw new AppError("Forbidden", 403)
   }
   return sendSuccess(res, order, "Order fetched")

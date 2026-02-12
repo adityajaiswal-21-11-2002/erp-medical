@@ -21,12 +21,21 @@ function isWebhookConfigured(): boolean {
   return true
 }
 
+function getBookedByUserId(order: { bookedBy: unknown }): string | null {
+  const b = order.bookedBy
+  if (!b) return null
+  const doc = b as { _id?: { toString(): string }; toString?: () => string }
+  if (doc._id) return doc._id.toString()
+  return typeof (b as { toString?: () => string }).toString === "function" ? (b as { toString: () => string }).toString() : String(b)
+}
+
 export async function createRazorpayOrder(req: Request, res: Response) {
   const orderId = req.body?.orderId as string
   if (!orderId) throw new AppError("orderId required", 400)
   const order = await Order.findById(orderId).populate("bookedBy", "name email")
   if (!order) throw new AppError("Order not found", 404)
-  const isOwner = order.bookedBy.toString() === req.user?.id
+  const bookedById = getBookedByUserId(order)
+  const isOwner = bookedById === req.user?.id
   if (!isOwner) throw new AppError("Forbidden", 403)
   const amountPaise = Math.round((order.netAmount || 0) * 100)
   if (amountPaise < 100) throw new AppError("Amount too low", 400)

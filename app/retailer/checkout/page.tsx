@@ -1,18 +1,28 @@
 'use client'
 
 import { useState } from "react"
+import Script from "next/script"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import Link from "next/link"
+import { CreditCard, Loader2 } from "lucide-react"
 import { api } from "@/lib/api"
 import { useCart } from "@/app/cart-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
+declare global {
+  interface Window {
+    Razorpay?: any
+  }
+}
+
+const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || ""
 
 const checkoutSchema = z.object({
   customerName: z.string().min(1),
@@ -45,6 +55,10 @@ export default function CheckoutPage() {
       toast.error("Cart is empty")
       return
     }
+    if (!razorpayKeyId) {
+      toast.error("Payment is not configured. Please contact support.")
+      return
+    }
     setPlacing(true)
     try {
       const payload = {
@@ -56,12 +70,46 @@ export default function CheckoutPage() {
       }
       const res = await api.post("/api/orders", payload)
       const orderId = res.data?.data?._id
-      toast.success("Order placed")
-      clearCart()
-      router.push(orderId ? `/retailer/orders/${orderId}` : "/retailer/orders")
+      if (!orderId) throw new Error("Order not created")
+      const rzRes = await api.post("/api/payments/razorpay/order", { orderId })
+      const data = rzRes.data?.data
+      if (!data?.razorpayOrderId || !data?.keyId) throw new Error("Razorpay order failed")
+      const options = {
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency || "INR",
+        name: data.name || "PharmaHub",
+        description: data.description || "Order payment",
+        order_id: data.razorpayOrderId,
+        prefill: data.prefill || {},
+        handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+          try {
+            await api.post("/api/payments/razorpay/verify", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              internalOrderId: orderId,
+            })
+            clearCart()
+            toast.success("Payment successful. Order placed.")
+            router.push(`/retailer/orders/${orderId}`)
+          } catch (e: any) {
+            toast.error(e?.response?.data?.error || "Payment verification failed")
+          } finally {
+            setPlacing(false)
+          }
+        },
+        modal: { ondismiss: () => setPlacing(false) },
+      }
+      if (typeof window !== "undefined" && window.Razorpay) {
+        const rz = new window.Razorpay(options)
+        rz.open()
+      } else {
+        toast.error("Payment gateway not loaded")
+        setPlacing(false)
+      }
     } catch (error: any) {
       toast.error(error?.response?.data?.error || "Failed to place order")
-    } finally {
       setPlacing(false)
     }
   }
@@ -73,7 +121,7 @@ export default function CheckoutPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Checkout</h1>
-        <p className="text-muted-foreground mt-2">Review and complete your order</p>
+        <p className="text-muted-foreground mt-2">Review and complete your order. Payment required via Razorpay.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -99,13 +147,26 @@ export default function CheckoutPage() {
                   placeholder="Customer address"
                   {...form.register("customerAddress")}
                 />
-                <div className="md:col-span-2 flex gap-3">
-                  <Button type="submit" disabled={placing}>
-                    {placing ? "Placing..." : "Place Order"}
-                  </Button>
-                  <Button variant="outline" className="bg-transparent" asChild>
-                    <Link href="/retailer/cart">Back to Cart</Link>
-                  </Button>
+                <div className="md:col-span-2 flex flex-col gap-3">
+                  <div className="rounded-lg border border-primary bg-primary/5 p-3 flex items-center gap-3">
+                    <CreditCard className="w-4 h-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Pay with Razorpay</p>
+                      <p className="text-xs text-muted-foreground">Card, UPI, Netbanking — payment required to place order</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button type="submit" disabled={placing || !razorpayKeyId}>
+                      {placing ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                      Pay &amp; place order
+                    </Button>
+                    <Button variant="outline" className="bg-transparent" type="button" asChild>
+                      <Link href="/retailer/cart">Back to Cart</Link>
+                    </Button>
+                  </div>
+                  {!razorpayKeyId && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400">Payment is not configured. Contact support.</p>
+                  )}
                 </div>
               </form>
             </CardContent>
@@ -156,6 +217,12 @@ export default function CheckoutPage() {
           </Card>
         </div>
       </div>
+      {razorpayKeyId && (
+        <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="afterInteractive"
+        />
+      )}
     </div>
   )
 }
