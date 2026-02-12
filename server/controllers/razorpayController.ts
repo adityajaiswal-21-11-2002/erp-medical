@@ -7,6 +7,7 @@ import LoyaltyLedger from "../models/LoyaltyLedger"
 import { env } from "../config/env"
 import { AppError } from "../middleware/error"
 import { sendSuccess } from "../utils/response"
+import { createShipmentForOrderIdInternal } from "./shipmentController"
 
 const RAZORPAY_KEY_SECRET = env.razorpayKeySecret || ""
 const RAZORPAY_WEBHOOK_SECRET = env.razorpayWebhookSecret || ""
@@ -113,6 +114,11 @@ export async function verifyRazorpayPayment(req: Request, res: Response) {
   payment.status = "CAPTURED"
   await payment.save()
   await creditLoyaltyOnce(internalOrderId)
+  try {
+    await createShipmentForOrderIdInternal(internalOrderId)
+  } catch {
+    // Do not fail payment verification if shipment creation fails (e.g. Shiprocket not configured)
+  }
   return sendSuccess(res, { verified: true }, "Payment verified")
 }
 
@@ -190,6 +196,11 @@ export async function razorpayWebhook(req: Request, res: Response) {
         await payment.save()
         await creditLoyaltyOnce(payment.orderId.toString())
       }
+      try {
+        await createShipmentForOrderIdInternal(payment.orderId.toString())
+      } catch {
+        // ignore
+      }
     }
   }
   if (event === "order.paid" && orderEntity) {
@@ -199,6 +210,13 @@ export async function razorpayWebhook(req: Request, res: Response) {
       payment.status = "CAPTURED"
       await payment.save()
       await creditLoyaltyOnce(payment.orderId.toString())
+    }
+    if (payment) {
+      try {
+        await createShipmentForOrderIdInternal(payment.orderId.toString())
+      } catch {
+        // ignore
+      }
     }
   }
   return sendSuccess(res, { processed: true }, "Webhook received")

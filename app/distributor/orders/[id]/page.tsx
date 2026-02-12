@@ -11,13 +11,6 @@ import { Timeline } from "@/components/timeline"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
   Table,
   TableBody,
   TableCell,
@@ -57,9 +50,7 @@ export default function DistributorOrderDetailPage({ params }: { params: Promise
   const [order, setOrder] = useState<Order | null>(null)
   const [shipment, setShipment] = useState<Shipment | null>(null)
   const [loading, setLoading] = useState(true)
-  const [creating, setCreating] = useState(false)
   const [tracking, setTracking] = useState(false)
-  const [provider, setProvider] = useState<string>("SHIPROCKET")
 
   const resolvedParams = React.use(params)
   const id = resolvedParams?.id
@@ -102,20 +93,6 @@ export default function DistributorOrderDetailPage({ params }: { params: Promise
     run().catch(() => setLoading(false))
     return () => { done = true }
   }, [orderId])
-
-  const handleCreateShipment = async () => {
-    if (!orderId) return
-    setCreating(true)
-    try {
-      await api.post(`/api/shipments/${orderId}/create`, { provider, force: false })
-      toast.success("Shipment created")
-      await loadShipment()
-    } catch (e: any) {
-      toast.error(e?.response?.data?.error || "Failed to create shipment")
-    } finally {
-      setCreating(false)
-    }
-  }
 
   const handleTrack = async () => {
     if (!orderId) return
@@ -258,21 +235,9 @@ export default function DistributorOrderDetailPage({ params }: { params: Promise
         </CardHeader>
         <CardContent className="space-y-4">
           {!shipment ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <Select value={provider} onValueChange={setProvider}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="SHIPROCKET">Shiprocket</SelectItem>
-                  <SelectItem value="RAPIDSHYP">RapidShyp</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button onClick={handleCreateShipment} disabled={creating}>
-                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                Create Shipment
-              </Button>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Shipment is created automatically after payment (Shiprocket/RapidShyp). It may appear shortly. Refresh the page to check.
+            </p>
           ) : (
             <>
               <div className="grid gap-4 md:grid-cols-2">

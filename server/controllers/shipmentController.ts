@@ -9,6 +9,74 @@ import { getShippingProvider, getDefaultShippingProvider } from "../services/shi
 import type { ShippingProviderName } from "../services/shipping/types"
 import mongoose from "mongoose"
 
+/**
+ * Create shipment for an order (used after payment success). Does not require req/user.
+ * Fails silently so payment verification is not blocked (e.g. if Shiprocket is not configured).
+ */
+export async function createShipmentForOrderIdInternal(
+  orderId: string,
+  options?: { provider?: ShippingProviderName; createdBy?: string; force?: boolean }
+): Promise<{ ok: boolean; shipment?: mongoose.Document; error?: string }> {
+  try {
+    const order = await Order.findById(orderId).populate("items.product")
+    if (!order) return { ok: false, error: "Order not found" }
+    const existing = await Shipment.findOne({ orderId })
+    if (existing && !options?.force) return { ok: true, shipment: existing }
+    const provider = options?.provider ?? getDefaultShippingProvider()
+    const providerImpl = getShippingProvider(provider)
+    const internalOrder = {
+      _id: order._id.toString(),
+      orderNumber: order.orderNumber,
+      customerName: order.customerName,
+      customerMobile: order.customerMobile,
+      customerAddress: order.customerAddress,
+      items: order.items.map((item: any) => ({
+        product: item.product,
+        quantity: item.quantity,
+        amount: item.amount,
+      })),
+      netAmount: order.netAmount || 0,
+    }
+    const result = await providerImpl.createOrderFromInternal(internalOrder)
+    let awb = result.awb
+    let courierName = result.courierName
+    let status = result.status
+    let shipmentId = result.shipmentId
+    let providerOrderId = result.providerOrderId
+    if (!awb && result.providerOrderId) {
+      try {
+        const assignResult = await providerImpl.assignShipment(result.providerOrderId)
+        awb = assignResult.awb
+        courierName = assignResult.courierName
+        status = assignResult.status
+      } catch {
+        // keep create result
+      }
+    }
+    const createdBy = options?.createdBy ? new mongoose.Types.ObjectId(options.createdBy) : undefined
+    const doc = await Shipment.findOneAndUpdate(
+      { orderId },
+      {
+        orderId,
+        provider,
+        providerOrderId: providerOrderId || result.providerOrderId,
+        shipmentId: shipmentId || result.shipmentId,
+        awb: awb || result.awb,
+        courierName: courierName || result.courierName,
+        status: status || result.status,
+        tracking: null,
+        raw: result.raw,
+        ...(createdBy && { createdBy }),
+      },
+      { upsert: true, new: true },
+    )
+    return { ok: true, shipment: doc }
+  } catch (e) {
+    const error = e instanceof Error ? e.message : String(e)
+    return { ok: false, error }
+  }
+}
+
 async function assertOrderAccess(orderId: string, req: Request, allowCustomer = true) {
   const order = await Order.findById(orderId).populate("items.product")
   if (!order) throw new AppError("Order not found", 404)
@@ -31,60 +99,15 @@ export async function createShipment(req: Request, res: Response) {
   }
   const provider = (req.body?.provider as ShippingProviderName) || getDefaultShippingProvider()
   const force = !!req.body?.force
-  const order = await Order.findById(orderId).populate("items.product")
-  if (!order) throw new AppError("Order not found", 404)
-  const existing = await Shipment.findOne({ orderId })
-  if (existing && !force) {
-    return sendSuccess(res, existing, "Shipment already exists")
+  const result = await createShipmentForOrderIdInternal(orderId, {
+    provider,
+    createdBy: req.user!.id,
+    force,
+  })
+  if (!result.ok) {
+    throw new AppError(result.error || "Failed to create shipment", 400)
   }
-  const createdBy = req.user!.id
-  const providerImpl = getShippingProvider(provider)
-  const internalOrder = {
-    _id: order._id.toString(),
-    orderNumber: order.orderNumber,
-    customerName: order.customerName,
-    customerMobile: order.customerMobile,
-    customerAddress: order.customerAddress,
-    items: order.items.map((item: any) => ({
-      product: item.product,
-      quantity: item.quantity,
-      amount: item.amount,
-    })),
-    netAmount: order.netAmount || 0,
-  }
-  const result = await providerImpl.createOrderFromInternal(internalOrder)
-  let awb = result.awb
-  let courierName = result.courierName
-  let status = result.status
-  let shipmentId = result.shipmentId
-  let providerOrderId = result.providerOrderId
-  if (!awb && result.providerOrderId) {
-    try {
-      const assignResult = await providerImpl.assignShipment(result.providerOrderId)
-      awb = assignResult.awb
-      courierName = assignResult.courierName
-      status = assignResult.status
-    } catch {
-      // keep create result
-    }
-  }
-  const doc = await Shipment.findOneAndUpdate(
-    { orderId },
-    {
-      orderId,
-      provider,
-      providerOrderId: providerOrderId || result.providerOrderId,
-      shipmentId: shipmentId || result.shipmentId,
-      awb: awb || result.awb,
-      courierName: courierName || result.courierName,
-      status: status || result.status,
-      tracking: null,
-      raw: result.raw,
-      createdBy: new mongoose.Types.ObjectId(createdBy),
-    },
-    { upsert: true, new: true },
-  )
-  return sendSuccess(res, doc, "Shipment created")
+  return sendSuccess(res, result.shipment, "Shipment created")
 }
 
 export async function getShipment(req: Request, res: Response) {

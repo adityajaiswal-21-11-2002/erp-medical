@@ -54,6 +54,12 @@ export default function AdminOrdersPage() {
   const [statusOpen, setStatusOpen] = useState(false)
   const [invoiceOpen, setInvoiceOpen] = useState(false)
   const [selected, setSelected] = useState<OrderRow | null>(null)
+  const [shipment, setShipment] = useState<{
+    provider?: string
+    awb?: string
+    courierName?: string
+    status?: string
+  } | null>(null)
 
   const statusForm = useForm<z.infer<typeof statusSchema>>({
     resolver: zodResolver(statusSchema),
@@ -149,9 +155,16 @@ export default function AdminOrdersPage() {
           actions={[
             {
               label: "View",
-              onClick: (row) => {
+              onClick: async (row) => {
                 setSelected(row)
+                setShipment(null)
                 setDetailOpen(true)
+                try {
+                  const res = await api.get(`/api/shipments/${row._id}`)
+                  setShipment(res.data?.data || null)
+                } catch {
+                  setShipment(null)
+                }
               },
             },
             {
@@ -171,9 +184,16 @@ export default function AdminOrdersPage() {
               },
             },
           ]}
-          onRowClick={(row) => {
+          onRowClick={async (row) => {
             setSelected(row)
+            setShipment(null)
             setDetailOpen(true)
+            try {
+              const res = await api.get(`/api/shipments/${row._id}`)
+              setShipment(res.data?.data || null)
+            } catch {
+              setShipment(null)
+            }
           }}
         />
       )}
@@ -229,6 +249,19 @@ export default function AdminOrdersPage() {
             <p className="text-right text-lg font-semibold text-foreground">
               Net Amount: ₹{selected.netAmount}
             </p>
+            <div className="rounded-lg border border-border p-3 space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">Shipment (Shiprocket / RapidShyp)</p>
+              {shipment ? (
+                <>
+                  <p className="text-sm font-medium">Provider: {shipment.provider ?? "-"}</p>
+                  <p className="text-sm">AWB: <span className="font-mono">{shipment.awb ?? "-"}</span></p>
+                  <p className="text-sm">Courier: {shipment.courierName ?? "-"}</p>
+                  <p className="text-sm">Status: {shipment.status ?? "-"}</p>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">Created automatically after payment, or pending.</p>
+              )}
+            </div>
           </div>
         )}
       </DetailDrawer>

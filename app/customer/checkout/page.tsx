@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Script from "next/script"
-import { CreditCard, MapPin, Loader2 } from "lucide-react"
+import { CreditCard, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
 import { useCart } from "@/app/cart-context"
@@ -27,7 +27,6 @@ export default function CustomerCheckoutPage() {
   const { items, subtotal, clearCart } = useCart()
   const { user } = useAuth()
   const [refCode, setRefCode] = useState<string | null>(null)
-  const [payWithRazorpay, setPayWithRazorpay] = useState(false)
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     name: "",
@@ -57,27 +56,8 @@ export default function CustomerCheckoutPage() {
       toast.error("Cart is empty")
       return
     }
-    if (payWithRazorpay && razorpayKeyId) {
-      await handleRazorpayCheckout()
-      return
-    }
-    try {
-      setLoading(true)
-      const payload = createOrderPayload()
-      await api.post("/api/orders", payload)
-      clearCart()
-      toast.success("Order placed successfully")
-      router.push("/customer/orders")
-    } catch (error: any) {
-      toast.error(error?.response?.data?.error || "Failed to place order")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleRazorpayCheckout = async () => {
     if (!razorpayKeyId) {
-      toast.error("Online payment not configured")
+      toast.error("Payment is not configured. Please contact support.")
       return
     }
     setLoading(true)
@@ -170,26 +150,11 @@ export default function CustomerCheckoutPage() {
             <CardTitle className="text-base">Payment</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {razorpayKeyId && (
-              <div
-                className={`rounded-lg border p-3 flex items-center gap-3 cursor-pointer ${payWithRazorpay ? "border-primary bg-primary/5" : "bg-muted/30"}`}
-                onClick={() => setPayWithRazorpay(true)}
-              >
-                <CreditCard className="w-4 h-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">Pay online (Razorpay)</p>
-                  <p className="text-xs text-muted-foreground">Card, UPI, Netbanking</p>
-                </div>
-              </div>
-            )}
-            <div
-              className={`rounded-lg border p-3 flex items-center gap-3 cursor-pointer ${!payWithRazorpay ? "border-primary bg-primary/5" : "bg-muted/30"}`}
-              onClick={() => setPayWithRazorpay(false)}
-            >
-              <MapPin className="w-4 h-4 text-muted-foreground" />
+            <div className="rounded-lg border border-primary bg-primary/5 p-3 flex items-center gap-3">
+              <CreditCard className="w-4 h-4 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium">Place order (pay later)</p>
-                <p className="text-xs text-muted-foreground">Pay on delivery or later</p>
+                <p className="text-sm font-medium">Pay with Razorpay</p>
+                <p className="text-xs text-muted-foreground">Card, UPI, Netbanking — payment required to place order</p>
               </div>
             </div>
             {refCode && (
@@ -197,10 +162,13 @@ export default function CustomerCheckoutPage() {
                 Referral applied: <span className="font-medium text-foreground">{refCode}</span>
               </div>
             )}
-            <Button className="w-full" onClick={handlePlaceOrder} disabled={loading}>
+            <Button className="w-full" onClick={handlePlaceOrder} disabled={loading || !razorpayKeyId}>
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-              {payWithRazorpay && razorpayKeyId ? "Pay with Razorpay" : "Place order"}
+              Pay &amp; place order
             </Button>
+            {!razorpayKeyId && (
+              <p className="text-xs text-amber-600 dark:text-amber-400">Payment is not configured. Contact support.</p>
+            )}
           </CardContent>
         </Card>
       </div>
