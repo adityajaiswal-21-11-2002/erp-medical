@@ -20,14 +20,13 @@ declare global {
   }
 }
 
-const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || ""
-
 export default function CustomerCheckoutPage() {
   const router = useRouter()
   const { items, subtotal, clearCart } = useCart()
   const { user } = useAuth()
   const [refCode, setRefCode] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [razorpayKeyId, setRazorpayKeyId] = useState<string>("")
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -38,6 +37,13 @@ export default function CustomerCheckoutPage() {
 
   useEffect(() => {
     setRefCode(localStorage.getItem("ref_code"))
+  }, [])
+
+  useEffect(() => {
+    api.get("/api/payments/razorpay/key").then((res) => {
+      const keyId = res.data?.data?.keyId ?? ""
+      setRazorpayKeyId(keyId || "")
+    }).catch(() => setRazorpayKeyId(""))
   }, [])
 
   const createOrderPayload = () => ({

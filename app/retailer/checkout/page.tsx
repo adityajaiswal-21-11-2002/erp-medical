@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Script from "next/script"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
@@ -22,8 +22,6 @@ declare global {
   }
 }
 
-const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || ""
-
 const checkoutSchema = z.object({
   customerName: z.string().min(1),
   customerMobile: z.string().min(6),
@@ -38,6 +36,14 @@ export default function CheckoutPage() {
   const router = useRouter()
   const { items, subtotal, clearCart } = useCart()
   const [placing, setPlacing] = useState(false)
+  const [razorpayKeyId, setRazorpayKeyId] = useState<string>("")
+
+  useEffect(() => {
+    api.get("/api/payments/razorpay/key").then((res) => {
+      const keyId = res.data?.data?.keyId ?? ""
+      setRazorpayKeyId(keyId || "")
+    }).catch(() => setRazorpayKeyId(""))
+  }, [])
 
   const form = useForm<CheckoutValues>({
     resolver: zodResolver(checkoutSchema),

@@ -21,7 +21,7 @@ This document describes what happens when a customer places an order: payment wi
 | 9 | **Server:** Signature verified, `Payment` set to `CAPTURED`, loyalty credited. **Shipment is created automatically** for this order (Shiprocket or RapidShyp per `DEFAULT_SHIPPING_PROVIDER`). |
 | 10 | Frontend clears cart, shows success, redirects to **/customer/orders**. |
 
-If Razorpay is not configured (`NEXT_PUBLIC_RAZORPAY_KEY_ID` missing), checkout shows a message and the button is disabled.
+If Razorpay is not configured (`RAZORPAY_KEY_ID` missing in .env), checkout fetches the key from the API; if empty, it shows a message and the button is disabled.
 
 ---
 

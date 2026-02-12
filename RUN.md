@@ -22,8 +22,8 @@ Copy `env.example` to `.env` and set:
 - `RAPIDSHYP_BASE_URL` – optional; default `https://api.rapidshyp.com`
 
 **Razorpay (IDFC):**
-- `RAZORPAY_KEY_ID` – from Razorpay Dashboard → Settings → API Keys
-- `RAZORPAY_KEY_SECRET` – API secret (never expose in frontend)
+- `RAZORPAY_KEY_ID` – from Razorpay Dashboard → Settings → API Keys (public key; frontend gets it via GET /api/payments/razorpay/key)
+- `RAZORPAY_KEY_SECRET` – API secret (server only; never expose in frontend)
 - `RAZORPAY_WEBHOOK_SECRET` – from Dashboard → Webhooks → Add endpoint → copy secret. **Optional for now:** if empty or left as placeholder (e.g. `your_webhook_secret`), create order and verify payment still work; only the webhook endpoint will return 503 until you set a real secret.
 
 **Other:**
@@ -33,7 +33,7 @@ Copy `env.example` to `.env` and set:
 ### Frontend (.env.local)
 
 - `NEXT_PUBLIC_API_URL` – backend base URL, e.g. `http://localhost:5000` (leave empty to use Next.js API routes)
-- `NEXT_PUBLIC_RAZORPAY_KEY_ID` – Razorpay **public** key only (same as backend key id for checkout)
+- Frontend checkout uses `RAZORPAY_KEY_ID` via API (GET /api/payments/razorpay/key); no separate frontend env needed.
 
 ---
 
@@ -61,14 +61,14 @@ Copy `env.example` to `.env` and set:
    - URL: `https://your-domain.com/api/webhooks/razorpay` (or `http://localhost:3000/api/webhooks/razorpay` for dev)
    - Events: `payment.captured`, `payment.failed`, `order.paid`
 4. Copy the **Webhook Secret** into `RAZORPAY_WEBHOOK_SECRET`.
-5. In frontend set only `NEXT_PUBLIC_RAZORPAY_KEY_ID` (public key).
+5. Frontend gets Razorpay key from API; ensure `RAZORPAY_KEY_ID` is set in .env.
 
 ---
 
 ## Integration Checklist
 
 - [ ] Backend `.env` has `MONGODB_URI`, JWT secrets, and (optional) shipping/Razorpay vars.
-- [ ] Frontend `.env.local` has `NEXT_PUBLIC_API_URL` (if using separate backend) and `NEXT_PUBLIC_RAZORPAY_KEY_ID` for online payment.
+- [ ] `.env` has `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` for online payment (frontend gets key via API).
 - [ ] Shiprocket: API user created and credentials set; admin can use “Test” on Integrations page.
 - [ ] RapidShyp: API key set; admin can use “Test” on Integrations page.
 - [ ] Razorpay: Key ID + Secret in backend; Webhook URL added and secret set; public key in frontend.

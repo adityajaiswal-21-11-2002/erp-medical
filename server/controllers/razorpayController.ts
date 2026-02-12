@@ -12,6 +12,11 @@ import { createShipmentForOrderIdInternal } from "./shipmentController"
 const RAZORPAY_KEY_SECRET = env.razorpayKeySecret || ""
 const RAZORPAY_WEBHOOK_SECRET = env.razorpayWebhookSecret || ""
 
+/** Returns the public Razorpay key id (RAZORPAY_KEY_ID) for frontend checkout. */
+export async function getRazorpayPublicKey(_req: Request, res: Response) {
+  return sendSuccess(res, { keyId: env.razorpayKeyId || "" }, "OK")
+}
+
 /** Webhook is only active when a real secret is set (not empty or placeholder). */
 function isWebhookConfigured(): boolean {
   const s = (RAZORPAY_WEBHOOK_SECRET || "").trim()

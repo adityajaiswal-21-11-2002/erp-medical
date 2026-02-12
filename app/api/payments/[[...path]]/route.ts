@@ -9,6 +9,7 @@ import {
   verifyRazorpayPayment,
   listRazorpayPayments,
   listWebhookEvents,
+  getRazorpayPublicKey,
 } from "@/server/controllers/razorpayController"
 import { requireAuth } from "@/server/middleware/auth"
 import { requireRole } from "@/server/middleware/role"
@@ -58,6 +59,9 @@ export async function GET(request: Request, { params }: { params: Promise<Params
   }
   if (path[0] === "razorpay" && path.length === 1) {
     return runHandler(request, {}, [...withAuth, requireAccountType("ADMIN"), listRazorpayPayments], undefined)
+  }
+  if (path[0] === "razorpay" && path[1] === "key" && path.length === 2) {
+    return runHandler(request, {}, [...withAuth, getRazorpayPublicKey], undefined)
   }
   if (path[0] === "webhook-events" && path.length === 1) {
     return runHandler(request, {}, [...withAuth, requireAccountType("ADMIN"), listWebhookEvents], undefined)
