@@ -2,10 +2,7 @@
 import React, { useEffect, useState } from "react"
 import { AlertTriangle, Boxes, IndianRupee, PackageCheck } from "lucide-react"
 import { api } from "@/lib/api"
-import { toast } from "sonner"
-
-import { PageHeader } from "@/components/page-header"
-import { StatusBadge } from "@/components/status-badge"
+import { PageShell, PageHeader, StatCard, StatCards, StatusBadge, toast } from "@/components/ui-kit"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
@@ -47,71 +44,60 @@ export default function DistributorDashboardPage() {
         setDueAmount(
           settlements.reduce((sum: number, row: any) => sum + (row.outstanding || 0), 0),
         )
-      } catch (error: any) {
-        toast.error(error?.response?.data?.error || "Failed to load dashboard data")
+      } catch (err: unknown) {
+        const msg =
+          err && typeof err === "object" && "response" in err && err.response && typeof err.response === "object" && "data" in err.response && err.response.data && typeof err.response.data === "object" && "error" in err.response.data
+            ? String((err.response.data as { error?: string }).error)
+            : "Failed to load dashboard data"
+        toast.error(msg)
       }
     }
     load().catch(() => undefined)
   }, [])
   return (
-    <div className="space-y-6">
+    <PageShell maxWidth="content" className="space-y-4 md:space-y-6">
       <PageHeader
         title="Distributor Dashboard"
-        description="Track fulfillment performance, stock posture, and retailer activity."
+        subtitle="Track fulfillment performance, stock posture, and retailer activity."
+        breadcrumbs={[{ label: "Distributor", href: "/distributor" }, { label: "Dashboard" }]}
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="border">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
-            <PackageCheck className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-semibold">{pendingCount}</div>
-            <p className="text-xs text-muted-foreground">+12% vs last week</p>
-          </CardContent>
-        </Card>
-        <Card className="border">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Shipped Today</CardTitle>
-            <Boxes className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-semibold">64</div>
-            <p className="text-xs text-muted-foreground">92% on-time dispatch</p>
-          </CardContent>
-        </Card>
-        <Card className="border">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Out-of-stock SKUs</CardTitle>
-            <AlertTriangle className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-semibold">17</div>
-            <p className="text-xs text-muted-foreground">4 critical categories</p>
-          </CardContent>
-        </Card>
-        <Card className="border">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Due Amount</CardTitle>
-            <IndianRupee className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-semibold">₹{dueAmount}</div>
-            <p className="text-xs text-muted-foreground">Invoices due in 7 days</p>
-          </CardContent>
-        </Card>
-      </div>
+      <StatCards>
+        <StatCard
+          title="Pending Orders"
+          value={pendingCount}
+          description="+12% vs last week"
+          icon={<PackageCheck className="size-4" />}
+        />
+        <StatCard
+          title="Shipped Today"
+          value={64}
+          description="92% on-time dispatch"
+          icon={<Boxes className="size-4" />}
+        />
+        <StatCard
+          title="Out-of-stock SKUs"
+          value={17}
+          description="4 critical categories"
+          icon={<AlertTriangle className="size-4" />}
+        />
+        <StatCard
+          title="Due Amount"
+          value={`₹${dueAmount}`}
+          description="Invoices due in 7 days"
+          icon={<IndianRupee className="size-4" />}
+        />
+      </StatCards>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="border lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-base">Recent Orders</CardTitle>
+      <div className="grid gap-4 md:gap-6 lg:grid-cols-3">
+        <Card className="border border-border bg-card lg:col-span-2">
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-lg font-semibold">Recent Orders</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 pt-0 md:p-6 md:pt-0 overflow-x-auto">
             <Table>
-              <TableHeader className="bg-muted/50">
-                <TableRow>
+              <TableHeader>
+                <TableRow className="border-border bg-muted/50 hover:bg-transparent">
                   <TableHead className="text-xs font-semibold">Order ID</TableHead>
                   <TableHead className="text-xs font-semibold">Retailer</TableHead>
                   <TableHead className="text-xs font-semibold">Amount</TableHead>
@@ -122,12 +108,12 @@ export default function DistributorDashboardPage() {
               </TableHeader>
               <TableBody>
                 {recentOrders.map((order) => (
-                  <TableRow key={order._id}>
-                    <TableCell className="font-medium">{order._id}</TableCell>
-                    <TableCell>{order.customerName}</TableCell>
-                    <TableCell>₹{order.netAmount}</TableCell>
+                  <TableRow key={order._id} className="border-border">
+                    <TableCell className="font-medium text-sm">{order._id}</TableCell>
+                    <TableCell className="text-sm">{order.customerName}</TableCell>
+                    <TableCell className="text-sm">₹{order.netAmount}</TableCell>
                     <TableCell>
-                      <StatusBadge status={order.workflow?.distributorStatus || "PENDING_APPROVAL"} />
+                      <StatusBadge status={(order.workflow?.distributorStatus as "PENDING_APPROVAL") || "PENDING_APPROVAL"} />
                     </TableCell>
                     <TableCell>
                       <StatusBadge status="paid" />
@@ -142,20 +128,20 @@ export default function DistributorDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border">
-          <CardHeader>
-            <CardTitle className="text-base">Alerts</CardTitle>
+        <Card className="border border-border bg-card">
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-lg font-semibold">Alerts</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 p-4 pt-0 md:p-6 md:pt-0">
             {[
               "Shipment updates pending in ERP",
               "Inventory allocation checks required",
               "Settlements awaiting reconciliation",
             ].map((alert) => (
-              <div key={alert} className="flex items-start gap-3 rounded-lg border bg-muted/30 p-3">
-                <AlertTriangle className="w-4 h-4 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium">{alert}</p>
+              <div key={alert} className="flex items-start gap-3 rounded-lg border border-border bg-muted/30 p-3">
+                <AlertTriangle className="size-4 text-muted-foreground mt-0.5 shrink-0" aria-hidden />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">{alert}</p>
                   <p className="text-xs text-muted-foreground">Review recommended actions.</p>
                 </div>
               </div>
@@ -163,6 +149,6 @@ export default function DistributorDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </PageShell>
   )
 }

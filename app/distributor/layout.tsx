@@ -100,8 +100,8 @@ export default function DistributorLayout({ children }: { children: React.ReactN
     <AuthGate requiredAccountType="DISTRIBUTOR">
       <SidebarProvider>
         <div className="flex min-h-screen w-full bg-background">
-          <Sidebar className="border-r">
-            <SidebarHeader className="border-b px-6 py-4">
+          <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+            <SidebarHeader className="border-b border-sidebar-border px-4 py-4 md:px-6">
               <div className="flex items-center space-x-2">
                 <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
                   <Package className="w-4 h-4 text-primary-foreground" />
@@ -122,14 +122,14 @@ export default function DistributorLayout({ children }: { children: React.ReactN
                       const isActive = pathname === item.href || pathname?.startsWith(item.href + "/")
                       return (
                         <SidebarMenuItem key={item.id}>
-                          <SidebarMenuButton asChild data-active={isActive}>
+                          <SidebarMenuButton asChild data-active={isActive} tooltip={item.title}>
                             <Link
                               href={item.href}
                               className={`flex items-center space-x-2 ${
-                                isActive ? "bg-muted text-foreground" : ""
+                                isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : ""
                               }`}
                             >
-                              <item.icon className="w-4 h-4" />
+                              <item.icon className="size-4 shrink-0" aria-hidden />
                               <span>{item.title}</span>
                               {item.id === "orders" && ordersCount !== null && ordersCount > 0 && (
                                 <Badge variant="secondary" className="ml-auto text-xs">
@@ -146,9 +146,9 @@ export default function DistributorLayout({ children }: { children: React.ReactN
               </SidebarGroup>
             </SidebarContent>
 
-            <div className="border-t p-4 mt-auto space-y-2">
+            <div className="border-t border-sidebar-border p-4 mt-auto space-y-2">
               <div className="flex items-center space-x-2 px-2">
-                <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-foreground text-xs font-semibold">
+                <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center text-sidebar-accent-foreground text-xs font-semibold shrink-0">
                   {(user?.name || "D").slice(0, 2).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -172,37 +172,39 @@ export default function DistributorLayout({ children }: { children: React.ReactN
           </Sidebar>
 
           <SidebarInset className="flex-1">
-            <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6">
-              <div className="flex items-center space-x-4 flex-1">
-                <SidebarTrigger className="-ml-1" />
-                <form onSubmit={handleSearch} className="hidden md:flex items-center space-x-2 flex-1 max-w-md">
-                  <Search className="w-4 h-4 text-muted-foreground" />
+            <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-6">
+              <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+                <SidebarTrigger className="-ml-1 shrink-0" aria-label="Toggle sidebar" />
+                <form onSubmit={handleSearch} className="hidden md:flex items-center flex-1 max-w-md">
+                  <Search className="size-4 text-muted-foreground shrink-0" aria-hidden />
                   <Input
                     placeholder="Search orders, retailers..."
-                    className="bg-muted border-0 text-sm h-9"
+                    className="bg-muted/50 border-0 text-sm h-9 flex-1 min-w-0"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    aria-label="Search orders"
                   />
                 </form>
               </div>
-
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-1 shrink-0">
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
+                  className="h-9 w-9"
                   onClick={() => setTheme(isDark ? "light" : "dark")}
-                  title={`Switch to ${isDark ? "light" : "dark"} mode`}
+                  title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                  aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
                 >
-                  {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                  {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
                 </Button>
-                <Button variant="ghost" size="sm" className="relative">
-                  <Bell className="w-4 h-4" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
+                <Button variant="ghost" size="icon" className="h-9 w-9 relative" aria-label="Notifications">
+                  <Bell className="size-4" />
+                  <span className="absolute top-1 right-1 size-2 bg-destructive rounded-full" aria-hidden />
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <User className="w-4 h-4" />
+                    <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Open profile menu">
+                      <User className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -211,7 +213,7 @@ export default function DistributorLayout({ children }: { children: React.ReactN
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      className="text-destructive"
+                      className="text-destructive focus:text-destructive"
                       onClick={() => {
                         authLogout()
                         router.push("/auth/login")
@@ -224,7 +226,7 @@ export default function DistributorLayout({ children }: { children: React.ReactN
               </div>
             </header>
 
-            <main className="flex-1 p-6 space-y-6">{children}</main>
+            <main className="flex-1 p-4 md:p-6 space-y-4 md:space-y-6">{children}</main>
           </SidebarInset>
         </div>
       </SidebarProvider>

@@ -4,11 +4,18 @@ import { useEffect, useMemo, useState } from "react"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "sonner"
 import { api } from "@/lib/api"
-import { DataTable } from "@/components/data-table"
-import { PageHeader } from "@/components/page-header"
-import { StatusBadge } from "@/components/status-badge"
+import {
+  PageShell,
+  PageHeader,
+  ResponsiveDataTable,
+  StatusBadge,
+  DetailDrawer,
+  TableSkeleton,
+  EmptyState,
+  ErrorState,
+  toast,
+} from "@/components/ui-kit"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -41,7 +48,8 @@ type OrderRow = {
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderRow[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const [statusOpen, setStatusOpen] = useState(false)
   const [invoiceOpen, setInvoiceOpen] = useState(false)
@@ -59,30 +67,34 @@ export default function AdminOrdersPage() {
 
   const fetchOrders = async () => {
     setLoading(true)
+    setError(null)
     try {
       const res = await api.get("/api/orders?limit=200")
-      setOrders(res.data?.data?.items || [])
-    } catch (error: any) {
-      toast.error(error?.response?.data?.error || "Failed to load orders")
+      setOrders(res.data?.data?.items ?? [])
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "response" in err && err.response && typeof err.response === "object" && "data" in err.response && err.response.data && typeof err.response.data === "object" && "error" in err.response.data
+          ? String((err.response.data as { error?: string }).error)
+          : "Failed to load orders"
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchOrders().catch(() => undefined)
+    fetchOrders().catch(() => {})
   }, [])
 
   const columns = useMemo(
     () => [
-      { key: "orderNumber", label: "Order #", sortable: true },
+      { key: "orderNumber", label: "Order #", sortable: true, primary: true as const },
       { key: "customerName", label: "Customer" },
       { key: "customerMobile", label: "Mobile" },
       {
         key: "status",
         label: "Status",
-        filterable: true,
-        filterOptions: ["PLACED", "CANCELLED", "DELIVERED"],
         render: (value: OrderRow["status"]) => <StatusBadge status={value} />,
       },
       { key: "netAmount", label: "Amount", render: (value: number) => `₹${value}` },
@@ -92,107 +104,137 @@ export default function AdminOrdersPage() {
         render: (value: string) => new Date(value).toLocaleString(),
       },
     ],
-    [],
+    []
   )
 
   return (
-    <div className="space-y-6">
+    <PageShell maxWidth="content" className="space-y-4 md:space-y-6">
       <PageHeader
         title="Orders"
-        description="Review and manage all orders."
+        subtitle="Review and manage all orders."
+        breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Orders" }]}
         actions={
-          <Button onClick={fetchOrders} disabled={loading} variant="outline">
+          <Button onClick={() => fetchOrders()} disabled={loading} variant="outline" size="sm">
             Refresh
           </Button>
         }
       />
 
-      <DataTable
-        columns={columns}
-        data={orders}
-        searchableFields={["orderNumber", "customerName", "customerMobile"]}
-        actions={[
-          {
-            label: "View",
-            onClick: (row) => {
-              setSelected(row)
-              setDetailOpen(true)
-            },
-          },
-          {
-            label: "Update Status",
-            onClick: (row) => {
-              setSelected(row)
-              statusForm.reset({ status: row.status })
-              setStatusOpen(true)
-            },
-          },
-          {
-            label: "Set Invoice",
-            onClick: (row) => {
-              setSelected(row)
-              invoiceForm.reset({ invoiceNumber: row.invoiceNumber || "" })
-              setInvoiceOpen(true)
-            },
-          },
-        ]}
-      />
+      {error && (
+        <ErrorState
+          message={error}
+          onRetry={() => fetchOrders()}
+        />
+      )}
 
-      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Order Details</DialogTitle>
-          </DialogHeader>
-          {selected && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-2 md:grid-cols-2 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Order</p>
-                  <p className="font-medium">{selected.orderNumber}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Customer</p>
-                  <p className="font-medium">{selected.customerName}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Mobile</p>
-                  <p className="font-medium">{selected.customerMobile}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Status</p>
-                  <StatusBadge status={selected.status} />
-                </div>
+      {!error && loading && <TableSkeleton rows={8} cols={6} />}
+
+      {!error && !loading && orders.length === 0 && (
+        <EmptyState
+          title="No orders yet"
+          description="Orders will appear here once placed."
+          action={{ label: "Refresh", onClick: () => fetchOrders() }}
+        />
+      )}
+
+      {!error && !loading && orders.length > 0 && (
+        <ResponsiveDataTable<OrderRow>
+          columns={columns}
+          data={orders}
+          searchPlaceholder="Search by order #, customer, mobile..."
+          searchableFields={["orderNumber", "customerName", "customerMobile"]}
+          keyExtractor={(row) => row._id}
+          emptyMessage="No orders match your filters."
+          pageSize={20}
+          actions={[
+            {
+              label: "View",
+              onClick: (row) => {
+                setSelected(row)
+                setDetailOpen(true)
+              },
+            },
+            {
+              label: "Update Status",
+              onClick: (row) => {
+                setSelected(row)
+                statusForm.reset({ status: row.status })
+                setStatusOpen(true)
+              },
+            },
+            {
+              label: "Set Invoice",
+              onClick: (row) => {
+                setSelected(row)
+                invoiceForm.reset({ invoiceNumber: row.invoiceNumber ?? "" })
+                setInvoiceOpen(true)
+              },
+            },
+          ]}
+          onRowClick={(row) => {
+            setSelected(row)
+            setDetailOpen(true)
+          }}
+        />
+      )}
+
+      <DetailDrawer
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        title="Order Details"
+        description={selected?.orderNumber}
+      >
+        {selected && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 text-sm">
+              <div>
+                <p className="text-muted-foreground text-xs">Order</p>
+                <p className="font-medium text-foreground">{selected.orderNumber}</p>
               </div>
+              <div>
+                <p className="text-muted-foreground text-xs">Customer</p>
+                <p className="font-medium text-foreground">{selected.customerName}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs">Mobile</p>
+                <p className="font-medium text-foreground">{selected.customerMobile}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs">Status</p>
+                <StatusBadge status={selected.status} />
+              </div>
+            </div>
+            <div className="rounded-lg border border-border overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Qty</TableHead>
-                    <TableHead>Amount</TableHead>
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="text-xs">Product</TableHead>
+                    <TableHead className="text-xs">Qty</TableHead>
+                    <TableHead className="text-xs">Amount</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {selected.items.map((item, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell className="font-medium">
-                        {typeof item.product === "string" ? item.product : item.product?.name}
+                    <TableRow key={idx} className="border-border">
+                      <TableCell className="font-medium text-sm">
+                        {typeof item.product === "string" ? item.product : item.product?.name ?? "-"}
                       </TableCell>
-                      <TableCell>{item.quantity}</TableCell>
-                      <TableCell>{item.amount ? `₹${item.amount}` : "-"}</TableCell>
+                      <TableCell className="text-sm">{item.quantity}</TableCell>
+                      <TableCell className="text-sm">{item.amount != null ? `₹${item.amount}` : "-"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-              <div className="text-right text-lg font-semibold">
-                Net Amount: ₹{selected.netAmount}
-              </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+            <p className="text-right text-lg font-semibold text-foreground">
+              Net Amount: ₹{selected.netAmount}
+            </p>
+          </div>
+        )}
+      </DetailDrawer>
 
       <Dialog open={statusOpen} onOpenChange={setStatusOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Update Status</DialogTitle>
           </DialogHeader>
@@ -205,8 +247,12 @@ export default function AdminOrdersPage() {
                 toast.success("Status updated")
                 setStatusOpen(false)
                 fetchOrders()
-              } catch (error: any) {
-                toast.error(error?.response?.data?.error || "Failed to update status")
+              } catch (err: unknown) {
+                const msg =
+                  err && typeof err === "object" && "response" in err && err.response && typeof err.response === "object" && "data" in err.response && err.response.data && typeof err.response.data === "object" && "error" in err.response.data
+                    ? String((err.response.data as { error?: string }).error)
+                    : "Failed to update status"
+                toast.error(msg)
               }
             })}
           >
@@ -216,7 +262,7 @@ export default function AdminOrdersPage() {
                 statusForm.setValue("status", value as "PLACED" | "CANCELLED" | "DELIVERED")
               }
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
@@ -227,7 +273,7 @@ export default function AdminOrdersPage() {
             </Select>
             <DialogFooter>
               <Button type="submit" disabled={statusForm.formState.isSubmitting}>
-                {statusForm.formState.isSubmitting ? "Saving..." : "Update"}
+                {statusForm.formState.isSubmitting ? "Saving…" : "Update"}
               </Button>
             </DialogFooter>
           </form>
@@ -235,7 +281,7 @@ export default function AdminOrdersPage() {
       </Dialog>
 
       <Dialog open={invoiceOpen} onOpenChange={setInvoiceOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Set Invoice Number</DialogTitle>
           </DialogHeader>
@@ -248,23 +294,28 @@ export default function AdminOrdersPage() {
                 toast.success("Invoice updated")
                 setInvoiceOpen(false)
                 fetchOrders()
-              } catch (error: any) {
-                toast.error(error?.response?.data?.error || "Failed to update invoice")
+              } catch (err: unknown) {
+                const msg =
+                  err && typeof err === "object" && "response" in err && err.response && typeof err.response === "object" && "data" in err.response && err.response.data && typeof err.response.data === "object" && "error" in err.response.data
+                    ? String((err.response.data as { error?: string }).error)
+                    : "Failed to update invoice"
+                toast.error(msg)
               }
             })}
           >
             <Input
               placeholder="Invoice number"
+              className="w-full"
               {...invoiceForm.register("invoiceNumber")}
             />
             <DialogFooter>
               <Button type="submit" disabled={invoiceForm.formState.isSubmitting}>
-                {invoiceForm.formState.isSubmitting ? "Saving..." : "Update"}
+                {invoiceForm.formState.isSubmitting ? "Saving…" : "Update"}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
   )
 }

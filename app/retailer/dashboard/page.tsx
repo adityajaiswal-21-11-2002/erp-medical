@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { PageHeader } from "@/components/page-header"
+import { PageShell, PageHeader, StatCard, StatCards, StatusBadge } from "@/components/ui-kit"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ShoppingCart, Package, ArrowRight } from "lucide-react"
-import { StatusBadge } from "@/components/status-badge"
 import { api } from "@/lib/api"
 
 type OrderRow = {
@@ -33,82 +32,76 @@ export default function RetailerDashboardPage() {
   }, [])
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Retailer Dashboard" description="Your order activity at a glance." />
+    <PageShell maxWidth="content" className="space-y-4 md:space-y-6">
+      <PageHeader
+        title="Retailer Dashboard"
+        subtitle="Your order activity at a glance."
+        breadcrumbs={[{ label: "Retailer", href: "/retailer" }, { label: "Dashboard" }]}
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalOrders}</div>
-            <p className="text-xs text-muted-foreground">All orders placed</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Deliveries</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {recentOrders.filter((order) => order.status === "PLACED").length}
-            </div>
-            <p className="text-xs text-muted-foreground">Awaiting delivery</p>
-          </CardContent>
-        </Card>
-      </div>
+      <StatCards>
+        <StatCard
+          title="Total Orders"
+          value={totalOrders}
+          description="All orders placed"
+          icon={<ShoppingCart className="size-4" />}
+        />
+        <StatCard
+          title="Pending Deliveries"
+          value={recentOrders.filter((o) => o.status === "PLACED").length}
+          description="Awaiting delivery"
+          icon={<Package className="size-4" />}
+        />
+      </StatCards>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+      <Card className="border border-border bg-card">
+        <CardHeader className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between md:p-6">
           <div>
-            <CardTitle>Recent Orders</CardTitle>
-            <CardDescription>Last 5 orders placed</CardDescription>
+            <CardTitle className="text-lg font-semibold">Recent Orders</CardTitle>
+            <CardDescription className="text-sm text-muted-foreground">Last 5 orders placed</CardDescription>
           </div>
-          <Button variant="outline" size="sm" className="bg-transparent" asChild>
+          <Button variant="outline" size="sm" asChild>
             <Link href="/retailer/orders">View All</Link>
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 md:p-6 pt-0 overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Action</TableHead>
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="text-xs font-semibold">Order ID</TableHead>
+                <TableHead className="text-xs font-semibold">Date</TableHead>
+                <TableHead className="text-xs font-semibold">Items</TableHead>
+                <TableHead className="text-xs font-semibold">Amount</TableHead>
+                <TableHead className="text-xs font-semibold">Status</TableHead>
+                <TableHead className="text-xs font-semibold w-12"><span className="sr-only">Action</span></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {recentOrders.map((order) => (
-                <TableRow key={order._id}>
-                  <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                  <TableCell className="text-sm">
+                <TableRow key={order._id} className="border-border">
+                  <TableCell className="font-medium text-sm">{order.orderNumber}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
                     {new Date(order.createdAt).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-sm">
                     {order.items.reduce((sum, item) => sum + item.quantity, 0)}
                   </TableCell>
-                  <TableCell className="font-semibold">₹{order.netAmount}</TableCell>
+                  <TableCell className="font-semibold text-sm">₹{order.netAmount}</TableCell>
                   <TableCell>
                     <StatusBadge status={order.status} />
                   </TableCell>
                   <TableCell>
-                    <Button variant="outline" size="sm" className="bg-transparent" asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" asChild aria-label={`View order ${order.orderNumber}`}>
                       <Link href={`/retailer/orders/${order._id}`}>
-                        <ArrowRight className="w-4 h-4" />
+                        <ArrowRight className="size-4" />
                       </Link>
                     </Button>
                   </TableCell>
                 </TableRow>
               ))}
               {recentOrders.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
+                <TableRow className="border-border">
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8 text-sm">
                     No orders yet
                   </TableCell>
                 </TableRow>
@@ -117,6 +110,6 @@ export default function RetailerDashboardPage() {
           </Table>
         </CardContent>
       </Card>
-    </div>
+    </PageShell>
   )
 }

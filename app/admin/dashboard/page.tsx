@@ -1,8 +1,7 @@
-'use client'
+"use client"
 
 import { useEffect, useState } from "react"
-import { PageHeader } from "@/components/page-header"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { PageShell, PageHeader, StatCard, StatCards, ErrorState, StatCardsSkeleton } from "@/components/ui-kit"
 import { Users, Package, ClipboardList, TrendingUp } from "lucide-react"
 import { api } from "@/lib/api"
 import { trackEvent } from "@/lib/analytics"
@@ -15,89 +14,84 @@ type KpiState = {
 }
 
 export default function AdminDashboardPage() {
-  const [kpis, setKpis] = useState<KpiState>({
-    users: 0,
-    products: 0,
-    orders: 0,
-    revenue: 0,
-  })
+  const [kpis, setKpis] = useState<KpiState | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     trackEvent("page_view", { page: "admin_dashboard" })
     const fetchKpis = async () => {
-      const [usersRes, productsRes, ordersRes] = await Promise.allSettled([
-        api.get("/api/users?limit=1"),
-        api.get("/api/products?limit=1"),
-        api.get("/api/orders?limit=100"),
-      ])
+      try {
+        setError(null)
+        const [usersRes, productsRes, ordersRes] = await Promise.allSettled([
+          api.get("/api/users?limit=1"),
+          api.get("/api/products?limit=1"),
+          api.get("/api/orders?limit=100"),
+        ])
 
-      const users =
-        usersRes.status === "fulfilled" ? usersRes.value.data?.data?.total || 0 : 0
-      const products =
-        productsRes.status === "fulfilled" ? productsRes.value.data?.data?.total || 0 : 0
-      const ordersData =
-        ordersRes.status === "fulfilled" ? ordersRes.value.data?.data?.items || [] : []
-      const ordersTotal =
-        ordersRes.status === "fulfilled" ? ordersRes.value.data?.data?.total || 0 : 0
-      const revenue = ordersData.reduce(
-        (sum: number, order: any) => sum + (order.netAmount || 0),
-        0,
-      )
+        const users =
+          usersRes.status === "fulfilled" ? usersRes.value.data?.data?.total ?? 0 : 0
+        const products =
+          productsRes.status === "fulfilled" ? productsRes.value.data?.data?.total ?? 0 : 0
+        const ordersData =
+          ordersRes.status === "fulfilled" ? ordersRes.value.data?.data?.items ?? [] : []
+        const ordersTotal =
+          ordersRes.status === "fulfilled" ? ordersRes.value.data?.data?.total ?? 0 : 0
+        const revenue = ordersData.reduce(
+          (sum: number, order: { netAmount?: number }) => sum + (order.netAmount ?? 0),
+          0
+        )
 
-      setKpis({ users, products, orders: ordersTotal, revenue })
+        setKpis({ users, products, orders: ordersTotal, revenue })
+      } catch (e) {
+        setError("Failed to load dashboard data.")
+      }
     }
 
-    fetchKpis().catch(() => undefined)
+    fetchKpis().catch(() => setError("Failed to load dashboard data."))
   }, [])
 
   return (
-    <div className="space-y-6">
+    <PageShell maxWidth="content" className="space-y-4 md:space-y-6">
       <PageHeader
         title="Admin Dashboard"
-        description="Overview of users, inventory, and orders."
+        subtitle="Overview of users, inventory, and orders."
+        breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Dashboard" }]}
       />
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{kpis.users}</div>
-            <p className="text-xs text-muted-foreground">Active system users</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Products</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{kpis.products}</div>
-            <p className="text-xs text-muted-foreground">Catalog items</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Orders</CardTitle>
-            <ClipboardList className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{kpis.orders}</div>
-            <p className="text-xs text-muted-foreground">Total orders</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₹{kpis.revenue.toFixed(0)}</div>
-            <p className="text-xs text-muted-foreground">From latest 100 orders</p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+
+      {error && (
+        <ErrorState message={error} onRetry={() => window.location.reload()} />
+      )}
+
+      {!error && !kpis && <StatCardsSkeleton count={4} />}
+
+      {!error && kpis && (
+        <StatCards>
+          <StatCard
+            title="Users"
+            value={kpis.users}
+            description="Active system users"
+            icon={<Users className="size-4" />}
+          />
+          <StatCard
+            title="Products"
+            value={kpis.products}
+            description="Catalog items"
+            icon={<Package className="size-4" />}
+          />
+          <StatCard
+            title="Orders"
+            value={kpis.orders}
+            description="Total orders"
+            icon={<ClipboardList className="size-4" />}
+          />
+          <StatCard
+            title="Revenue"
+            value={`₹${kpis.revenue.toFixed(0)}`}
+            description="From latest 100 orders"
+            icon={<TrendingUp className="size-4" />}
+          />
+        </StatCards>
+      )}
+    </PageShell>
   )
 }
