@@ -234,6 +234,25 @@ export default function AdminUsersPage() {
                 <SelectItem value="USER">USER</SelectItem>
               </SelectContent>
             </Select>
+            <Select
+              value={createForm.watch("accountType")}
+              onValueChange={(value) =>
+                createForm.setValue(
+                  "accountType",
+                  value as "ADMIN" | "RETAILER" | "DISTRIBUTOR" | "CUSTOMER",
+                )
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Account type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ADMIN">ADMIN</SelectItem>
+                <SelectItem value="RETAILER">RETAILER</SelectItem>
+                <SelectItem value="DISTRIBUTOR">DISTRIBUTOR</SelectItem>
+                <SelectItem value="CUSTOMER">CUSTOMER</SelectItem>
+              </SelectContent>
+            </Select>
             <DialogFooter>
               <Button type="submit" disabled={createForm.formState.isSubmitting}>
                 {createForm.formState.isSubmitting ? "Creating..." : "Create"}
@@ -264,25 +283,6 @@ export default function AdminUsersPage() {
           >
             <Input placeholder="Full name" {...updateForm.register("name")} />
             <Input placeholder="Mobile" {...updateForm.register("mobile")} />
-            <Select
-              value={createForm.watch("accountType")}
-              onValueChange={(value) =>
-                createForm.setValue(
-                  "accountType",
-                  value as "ADMIN" | "RETAILER" | "DISTRIBUTOR" | "CUSTOMER",
-                )
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Account type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ADMIN">ADMIN</SelectItem>
-                <SelectItem value="RETAILER">RETAILER</SelectItem>
-                <SelectItem value="DISTRIBUTOR">DISTRIBUTOR</SelectItem>
-                <SelectItem value="CUSTOMER">CUSTOMER</SelectItem>
-              </SelectContent>
-            </Select>
             <Select
               value={updateForm.watch("role")}
               onValueChange={(value) => updateForm.setValue("role", value as "ADMIN" | "USER")}

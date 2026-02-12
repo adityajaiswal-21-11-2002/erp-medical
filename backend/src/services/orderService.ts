@@ -30,16 +30,20 @@ type CreateOrderInput = {
 
 type CreatedOrderDoc = mongoose.Document & { _id: mongoose.Types.ObjectId; netAmount?: number }
 
+function isTransactionNotSupportedError(err: unknown): boolean {
+  const msg = err && typeof err === "object" && "message" in err ? String((err as { message?: string }).message) : ""
+  return /transaction|replica set|mongos/i.test(msg)
+}
+
 export async function createOrder(input: CreateOrderInput): Promise<CreatedOrderDoc | null> {
-  const session = await mongoose.startSession()
-  let createdOrder: CreatedOrderDoc[] | null = null
-  await session.withTransaction(async () => {
+  const runWithSession = async (session: mongoose.mongo.ClientSession | null) => {
+    const sessionOpt = session ? { session } : undefined
     let orderNumber = generateOrderNumber()
-    let collision = await Order.exists({ orderNumber }).session(session)
+    let collision = session ? await Order.exists({ orderNumber }).session(session) : await Order.exists({ orderNumber })
     let attempts = 0
     while (collision && attempts < 5) {
       orderNumber = generateOrderNumber()
-      collision = await Order.exists({ orderNumber }).session(session)
+      collision = session ? await Order.exists({ orderNumber }).session(session) : await Order.exists({ orderNumber })
       attempts += 1
     }
     if (collision) {
@@ -64,7 +68,9 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
       amount?: number
     }[] = []
     for (const item of input.items) {
-      const product = await Product.findById(item.product).session(session)
+      const product = session
+        ? await Product.findById(item.product).session(session)
+        : await Product.findById(item.product)
       if (!product) {
         throw new AppError("Product not found", 404)
       }
@@ -88,7 +94,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
       totalGst += cgst + sgst
 
       product.currentStock -= item.quantity
-      await product.save({ session })
+      await product.save(sessionOpt)
 
       orderItems.push({
         product: product._id,
@@ -106,7 +112,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
     }
 
     const netAmount = Math.max(subtotal - totalDiscount + totalGst, 0)
-    createdOrder = await Order.create(
+    const created = await Order.create(
       [
         {
           orderNumber,
@@ -124,40 +130,69 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
           status: "PLACED",
         },
       ],
-      { session },
+      sessionOpt as mongoose.SaveOptions,
     )
-  })
-  session.endSession()
-  return createdOrder ? createdOrder[0] : null
+    return created[0] as CreatedOrderDoc
+  }
+
+  try {
+    const session = await mongoose.startSession()
+    let createdOrder: CreatedOrderDoc | null = null
+    await session.withTransaction(async () => {
+      createdOrder = await runWithSession(session)
+    })
+    session.endSession()
+    return createdOrder
+  } catch (err) {
+    if (isTransactionNotSupportedError(err)) {
+      return runWithSession(null)
+    }
+    throw err
+  }
 }
 
 export async function updateOrderStatus(orderId: string, status: string) {
-  const session = await mongoose.startSession()
-  let updatedOrder: any = null
-  await session.withTransaction(async () => {
-    const order = await Order.findById(orderId).session(session)
+  const runWithSession = async (session: mongoose.mongo.ClientSession | null) => {
+    const sessionOpt = session ? { session } : undefined
+    const order = session
+      ? await Order.findById(orderId).session(session)
+      : await Order.findById(orderId)
     if (!order) {
       throw new AppError("Order not found", 404)
     }
     if (order.status === status) {
-      updatedOrder = order
-      return
+      return order
     }
     if (status === "CANCELLED") {
       if (order.status !== "PLACED") {
         throw new AppError("Only placed orders can be cancelled", 400)
       }
       for (const item of order.items) {
-        const product = await Product.findById(item.product).session(session)
+        const product = session
+          ? await Product.findById(item.product).session(session)
+          : await Product.findById(item.product)
         if (product) {
           product.currentStock += item.quantity
-          await product.save({ session })
+          await product.save(sessionOpt)
         }
       }
     }
     order.status = status as "PLACED" | "CANCELLED" | "DELIVERED"
-    updatedOrder = await order.save({ session })
-  })
-  session.endSession()
-  return updatedOrder
+    return order.save(sessionOpt)
+  }
+
+  try {
+    const session = await mongoose.startSession()
+    let updatedOrder: mongoose.Document | null = null
+    await session.withTransaction(async () => {
+      updatedOrder = await runWithSession(session)
+    })
+    session.endSession()
+    return updatedOrder
+  } catch (err) {
+    if (isTransactionNotSupportedError(err)) {
+      return runWithSession(null)
+    }
+    throw err
+  }
 }
