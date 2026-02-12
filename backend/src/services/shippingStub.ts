@@ -9,8 +9,9 @@ export function getShippingProvider(_name: "SHIPROCKET" | "RAPIDSHYP") {
         awb: "AWB123456",
         courierName: "Mock Courier",
         status: "AWB_ASSIGNED" as const,
+        raw: {},
       }),
-    assignShipment: () =>
+    assignShipment: (_providerOrderId?: string) =>
       Promise.resolve({
         awb: "AWB123456",
         courierName: "Mock Courier",
@@ -22,7 +23,7 @@ export function getShippingProvider(_name: "SHIPROCKET" | "RAPIDSHYP") {
         courierName: "Mock Courier",
         status: "AWB_ASSIGNED" as const,
       }),
-    track: () =>
+    track: (_identifier?: string) =>
       Promise.resolve({
         status: "IN_TRANSIT" as const,
         tracking: {},

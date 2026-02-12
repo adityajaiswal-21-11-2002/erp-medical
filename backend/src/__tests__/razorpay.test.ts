@@ -10,8 +10,8 @@ const TEST_WEBHOOK_SECRET = "webhook_test_secret"
 jest.mock("../config/env", () => ({
   env: {
     razorpayKeyId: "rzp_test",
-    razorpayKeySecret: TEST_SECRET,
-    razorpayWebhookSecret: TEST_WEBHOOK_SECRET,
+    razorpayKeySecret: "razorpay_test_secret",
+    razorpayWebhookSecret: "webhook_test_secret",
   },
 }))
 
@@ -56,18 +56,22 @@ jest.mock("../utils/token", () => ({
 }))
 
 jest.mock("razorpay", () => ({
-  default: class {
-    orders = {
+  __esModule: true,
+  default: jest.fn().mockImplementation(function (this: any) {
+    this.orders = {
       create: jest.fn().mockResolvedValue({ id: "rp_order_123" }),
     }
-  },
+  }),
 }))
+
+const { errorHandler } = require("../middleware/error")
 
 describe("Razorpay", () => {
   const app = express()
   app.use(express.json())
   app.use("/api/payments", paymentRoutes)
   app.use("/api/webhooks", webhookRoutes)
+  app.use(errorHandler)
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -83,14 +87,17 @@ describe("Razorpay", () => {
     findOneLoyalty = LoyaltyLedger.findOne
     createLoyalty = LoyaltyLedger.create
 
-    findOrder.mockResolvedValue({
+    const mockOrder = {
       _id: "order1",
       orderNumber: "ORD-1",
       bookedBy: "user1",
       netAmount: 500,
       customerName: "C",
-      populate: jest.fn().mockResolvedThis(),
+    }
+    const thenableOrder = Object.assign(Promise.resolve(mockOrder), {
+      populate: () => Promise.resolve(mockOrder),
     })
+    findOrder.mockReturnValue(thenableOrder)
   })
 
   it("create Razorpay order endpoint returns proper payload", async () => {
@@ -166,7 +173,10 @@ describe("Razorpay", () => {
       status: "CREATED",
       save: jest.fn().mockResolvedValue(true),
     })
-    findOrder.mockResolvedValue({ _id: "order1", bookedBy: "user1", netAmount: 500 })
+    const mo = { _id: "order1", bookedBy: "user1", netAmount: 500 }
+    findOrder.mockReturnValue(
+      Object.assign(Promise.resolve(mo), { populate: () => Promise.resolve(mo) }),
+    )
     findOneLoyalty.mockResolvedValue(null)
     createLoyalty.mockResolvedValue({})
 
@@ -203,7 +213,10 @@ describe("Razorpay", () => {
       status: "CREATED",
       save: paymentSave,
     })
-    findOrder.mockResolvedValue({ _id: "order1", bookedBy: "user1", netAmount: 500 })
+    const mo = { _id: "order1", bookedBy: "user1", netAmount: 500 }
+    findOrder.mockReturnValue(
+      Object.assign(Promise.resolve(mo), { populate: () => Promise.resolve(mo) }),
+    )
     findOneLoyalty.mockResolvedValue(null)
     createLoyalty.mockResolvedValue({})
 
@@ -211,5 +224,35 @@ describe("Razorpay", () => {
     await request(app).post("/api/webhooks/razorpay").set("x-razorpay-signature", sig).send(payload)
 
     expect(createLoyalty).toHaveBeenCalledTimes(1)
+  })
+
+  it("verify endpoint rejects invalid signature with 400", async () => {
+    findOnePayment.mockResolvedValue({
+      orderId: "order1",
+      status: "CREATED",
+      save: jest.fn().mockResolvedValue(true),
+    })
+
+    const res = await request(app)
+      .post("/api/payments/razorpay/verify")
+      .set("Authorization", "Bearer token")
+      .send({
+        razorpay_order_id: "rp_order_123",
+        razorpay_payment_id: "rp_pay_456",
+        razorpay_signature: "invalid_signature",
+        internalOrderId: "order1",
+      })
+
+    expect(res.status).toBe(400)
+    expect(res.body.error).toMatch(/Invalid signature/i)
+  })
+
+  it("GET razorpay/key returns keyId for checkout", async () => {
+    const res = await request(app)
+      .get("/api/payments/razorpay/key")
+      .set("Authorization", "Bearer token")
+    expect(res.status).toBe(200)
+    expect(res.body.success).toBe(true)
+    expect(res.body.data.keyId).toBe("rzp_test")
   })
 })

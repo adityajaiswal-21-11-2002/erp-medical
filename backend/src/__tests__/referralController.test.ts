@@ -76,6 +76,22 @@ describe("referralController", () => {
       })
     })
 
+    it("invalid ref code returns success but no attribution created", async () => {
+      findOneReferralMock.mockResolvedValue(null)
+
+      const req = { body: { refCode: "REF-INVALID", orderId: "order1", customerId: "cust1" } } as any
+      const res = { json: jest.fn() } as any
+      await attributeReferral(req, res)
+      expect(createAttributionMock).not.toHaveBeenCalled()
+      expect(saveMock).not.toHaveBeenCalled()
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          data: null,
+        }),
+      )
+    })
+
     it("retailer loyalty points (attributedOrders) credited exactly once - duplicate attribute does not double-increment", async () => {
       const referralDoc = {
         retailerId: "ret1",

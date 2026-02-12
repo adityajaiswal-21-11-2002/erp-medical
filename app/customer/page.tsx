@@ -24,7 +24,7 @@ const featuredProducts = [
 
 export default function CustomerHomePage() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 space-y-8">
+    <div className="mx-auto max-w-7xl px-4 py-6 space-y-8">
       <PageHeader
         title="Welcome to PharmaHub"
         description="Order trusted pharma products with fast, compliant delivery."

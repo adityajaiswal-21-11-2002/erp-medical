@@ -1,0 +1,15 @@
+{
+  "event": "payment.captured",
+  "event_id": "evt_fixture_001",
+  "payload": {
+    "payment": {
+      "entity": {
+        "id": "pay_fixture_001",
+        "order_id": "rp_order_fixture_001",
+        "amount": 50000,
+        "currency": "INR",
+        "status": "captured"
+      }
+    }
+  }
+}

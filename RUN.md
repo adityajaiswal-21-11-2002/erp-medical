@@ -124,11 +124,14 @@ Copy `env.example` to `.env` and set:
 
 - **Backend tests:**  
   `npm run test:backend`  
-  (from repo root: `npm --prefix backend run test`)
+  Uses Jest; mocks external APIs (Razorpay, Shiprocket, RapidShyp). See `FINAL_REPORT.md`.
 
 - **E2E tests:**  
   `npm run test:e2e`  
-  Ensure backend and frontend are running (or use CI URLs). For Next.js-only: set `E2E_API_URL=http://localhost:3000`. See `FEATURE_REPORT.md` for full feature table and flows.
+  Uses Playwright. First run: `npx playwright install` to download browsers. Ensure backend and frontend are running (e.g. `npm run dev:all`). Set `E2E_BASE_URL=http://localhost:3000`, `E2E_API_URL=http://localhost:5000`.
+
+- **Test mode / mocks:**  
+  Backend tests mock Razorpay (orders.create), shipping (shippingStub). No live API calls. For deterministic seed: `SEED_DETERMINISTIC=1 npm run backend:seed`.
 
 ---
 
@@ -167,5 +170,5 @@ If FAIL: list failing spec/test names (e.g. `integrations.spec.ts`, `flows.spec.
 
 | Suite           | Result | Failing tests (if any) |
 |-----------------|--------|-------------------------|
-| Backend unit    | -      | -                       |
-| E2E (Playwright)| -      | -                       |
+| Backend unit    | PASS   | 46 tests, 12 suites     |
+| E2E (Playwright)| Run manually | Requires dev:all  |

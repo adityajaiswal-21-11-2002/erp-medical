@@ -15,8 +15,8 @@ export function TableSkeleton({
   className?: string
 }) {
   return (
-    <div className={cn("rounded-lg border border-border overflow-hidden", className)}>
-      <div className="flex gap-4 p-4 border-b border-border bg-muted/30">
+    <div className={cn("rounded-2xl border border-border overflow-hidden bg-card", className)}>
+      <div className="flex gap-4 px-4 py-3 border-b border-border bg-muted/50 sticky top-0">
         {Array.from({ length: cols }).map((_, i) => (
           <Skeleton key={i} className="h-4 flex-1 min-w-[60px]" />
         ))}
@@ -25,7 +25,7 @@ export function TableSkeleton({
         {Array.from({ length: rows }).map((_, rowIdx) => (
           <div
             key={rowIdx}
-            className="flex gap-4 p-4 items-center"
+            className="flex gap-4 px-4 py-3 items-center border-b border-border last:border-0"
           >
             {Array.from({ length: cols }).map((_, colIdx) => (
               <Skeleton
@@ -53,12 +53,12 @@ export function CardListSkeleton({
   return (
     <div className={cn("space-y-3", className)}>
       {Array.from({ length: count }).map((_, i) => (
-        <Card key={i} className="border-border">
-          <CardHeader className="p-4 pb-2">
+        <Card key={i} className="border-border rounded-2xl">
+          <CardHeader className="p-6 pb-2">
             <Skeleton className="h-5 w-1/3" />
             <Skeleton className="h-4 w-2/3 mt-2" />
           </CardHeader>
-          <CardContent className="p-4 pt-0 space-y-2">
+          <CardContent className="p-6 pt-0 space-y-2">
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-4/5" />
           </CardContent>
@@ -79,9 +79,9 @@ export function CardGridSkeleton({
   return (
     <div className={cn("grid gap-4 sm:grid-cols-2 lg:grid-cols-3", className)}>
       {Array.from({ length: count }).map((_, i) => (
-        <Card key={i} className="border-border h-full flex flex-col overflow-hidden">
+        <Card key={i} className="border-border rounded-2xl h-full flex flex-col overflow-hidden">
           <Skeleton className="aspect-square w-full shrink-0 rounded-none" />
-          <CardContent className="p-4 space-y-2 flex-1">
+          <CardContent className="p-6 space-y-2 flex-1">
             <Skeleton className="h-4 w-2/3" />
             <Skeleton className="h-3 w-full" />
             <Skeleton className="h-3 w-full" />
@@ -100,12 +100,12 @@ export function StatCardsSkeleton({ count = 4 }: { count?: number }) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6">
       {Array.from({ length: count }).map((_, i) => (
-        <Card key={i} className="border-border">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
+        <Card key={i} className="border-border rounded-2xl">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-6">
             <Skeleton className="h-4 w-20" />
             <Skeleton className="h-4 w-4 rounded" />
           </CardHeader>
-          <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+          <CardContent className="p-6 pt-0">
             <Skeleton className="h-8 w-16 mb-2" />
             <Skeleton className="h-3 w-24" />
           </CardContent>

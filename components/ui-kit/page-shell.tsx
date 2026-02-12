@@ -4,7 +4,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 export interface PageShellProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Max width: 'xl' (forms), 'content' (max-w-6xl), 'full' */
+  /** Max width: 'xl' (forms), 'content' (max-w-7xl), 'full' */
   maxWidth?: "xl" | "content" | "full"
 }
 
@@ -16,9 +16,9 @@ export function PageShell({
   return (
     <div
       className={cn(
-        "p-4 md:p-6 w-full",
-        maxWidth === "xl" && "max-w-xl mx-auto",
-        maxWidth === "content" && "max-w-6xl mx-auto",
+        "w-full px-4 md:px-6 py-6 mx-auto",
+        maxWidth === "xl" && "max-w-xl",
+        maxWidth === "content" && "max-w-7xl",
         maxWidth === "full" && "",
         className
       )}

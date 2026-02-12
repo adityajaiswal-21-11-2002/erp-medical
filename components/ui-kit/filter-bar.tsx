@@ -24,6 +24,8 @@ export interface FilterBarProps {
   /** Desktop: show filters inline. Mobile: "Filters" button opens sheet. */
   filterContent?: React.ReactNode
   resultCount?: number
+  /** Primary action button (e.g. Create, Refresh) shown in toolbar */
+  primaryAction?: React.ReactNode
 }
 
 export function FilterBar({
@@ -35,6 +37,7 @@ export function FilterBar({
   className,
   filterContent,
   resultCount,
+  primaryAction,
 }: FilterBarProps) {
   const isMobile = useIsMobile()
   const [sheetOpen, setSheetOpen] = React.useState(false)
@@ -53,7 +56,7 @@ export function FilterBar({
         onKeyDown={(e) => {
           if (e.key === "Enter") onSearchSubmit?.(e as unknown as React.FormEvent)
         }}
-        className="pl-9 h-9 bg-muted/50 border-border text-sm"
+        className="pl-9 h-9 bg-muted/50 border-border text-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         aria-label={searchPlaceholder}
       />
     </div>
@@ -81,7 +84,7 @@ export function FilterBar({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="gap-2 border-border"
+                className="gap-2 border-border cursor-pointer transition-all duration-200 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 aria-label="Open filters"
               >
                 <Filter className="size-4" />
@@ -104,11 +107,14 @@ export function FilterBar({
         )}
         {children}
       </form>
-      {resultCount !== undefined && (
-        <span className="text-sm text-muted-foreground whitespace-nowrap">
-          {resultCount} result{resultCount !== 1 ? "s" : ""}
-        </span>
-      )}
+      <div className="flex flex-shrink-0 items-center gap-3">
+        {primaryAction}
+        {resultCount !== undefined && (
+          <span className="text-sm text-muted-foreground whitespace-nowrap">
+            {resultCount} result{resultCount !== 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
     </div>
   )
 }

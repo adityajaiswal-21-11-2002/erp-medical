@@ -53,7 +53,7 @@ export function EmptyState({
   return (
     <Empty
       className={cn(
-        "border border-dashed border-border rounded-lg bg-muted/30",
+        "border border-dashed border-border rounded-2xl bg-muted/30 p-8 md:p-12",
         className
       )}
     >
@@ -63,7 +63,7 @@ export function EmptyState({
           {title}
         </EmptyTitle>
         {description && (
-          <EmptyDescription className="text-sm text-muted-foreground">
+          <EmptyDescription className="text-sm text-muted-foreground max-w-sm">
             {description}
           </EmptyDescription>
         )}
@@ -75,7 +75,7 @@ export function EmptyState({
               variant="default"
               size="sm"
               onClick={action.onClick}
-              className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="w-full sm:w-auto transition-all duration-200 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               {action.label}
             </Button>

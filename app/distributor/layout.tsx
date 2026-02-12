@@ -125,8 +125,8 @@ export default function DistributorLayout({ children }: { children: React.ReactN
                           <SidebarMenuButton asChild data-active={isActive} tooltip={item.title}>
                             <Link
                               href={item.href}
-                              className={`flex items-center space-x-2 ${
-                                isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : ""
+                              className={`flex items-center space-x-2 cursor-pointer transition-all duration-200 rounded-md ${
+                                isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "hover:bg-muted"
                               }`}
                             >
                               <item.icon className="size-4 shrink-0" aria-hidden />
@@ -226,7 +226,9 @@ export default function DistributorLayout({ children }: { children: React.ReactN
               </div>
             </header>
 
-            <main className="flex-1 p-4 md:p-6 space-y-4 md:space-y-6">{children}</main>
+            <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-4 md:py-6 space-y-4 md:space-y-6">
+              {children}
+            </main>
           </SidebarInset>
         </div>
       </SidebarProvider>

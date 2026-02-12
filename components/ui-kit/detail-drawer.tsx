@@ -48,7 +48,7 @@ export function DetailDrawer({
 
   const content = (
     <>
-      <div className={cn("overflow-auto px-4 pb-4 md:px-6 md:pb-6", className)}>
+      <div className={cn("overflow-auto px-4 pb-4 md:px-6 md:pb-6 space-y-4", className)}>
         {children}
       </div>
       <DrawerFooter className="flex-row gap-2 justify-end border-t border-border pt-4">

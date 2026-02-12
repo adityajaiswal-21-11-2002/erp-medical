@@ -117,7 +117,7 @@ test("Customer flow: referral purchase attribution", async ({ page }) => {
     headers: { Authorization: `Bearer ${retailer.accessToken}` },
   })
   const ref = await refRes.json()
-  const refCode = ref?.data?.refCode ?? "REF-DEMO1"
+  const refCode = ref?.data?.refCode ?? "REF_DEMO"
 
   const productRes = await api.get("/api/products?limit=1", {
     headers: { Authorization: `Bearer ${retailer.accessToken}` },

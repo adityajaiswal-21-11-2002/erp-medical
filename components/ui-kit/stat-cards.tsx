@@ -20,21 +20,26 @@ export function StatCard({
   className,
 }: StatCardProps) {
   return (
-    <Card className={cn("bg-card border-border", className)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
-        <span className="text-sm font-medium text-muted-foreground">
+    <Card
+      className={cn(
+        "bg-card border-border transition-all duration-200 hover:shadow-md",
+        className
+      )}
+    >
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-6">
+        <span className="text-sm font-medium text-muted-foreground truncate min-w-0">
           {title}
         </span>
         {icon && (
-          <span className="text-muted-foreground [&>svg]:size-4" aria-hidden>
+          <span className="text-muted-foreground [&>svg]:size-4 shrink-0" aria-hidden>
             {icon}
           </span>
         )}
       </CardHeader>
-      <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
-        <div className="text-2xl font-semibold text-foreground">{value}</div>
+      <CardContent className="p-6 pt-0">
+        <div className="text-2xl font-semibold text-foreground truncate">{value}</div>
         {description && (
-          <p className="text-xs text-muted-foreground mt-1">{description}</p>
+          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{description}</p>
         )}
       </CardContent>
     </Card>

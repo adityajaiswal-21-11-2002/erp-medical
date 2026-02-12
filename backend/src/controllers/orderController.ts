@@ -6,7 +6,6 @@ import { getPagination } from "../utils/pagination"
 import { createOrder, updateOrderStatus } from "../services/orderService"
 import Referral from "../models/Referral"
 import ReferralAttribution from "../models/ReferralAttribution"
-import LoyaltyLedger from "../models/LoyaltyLedger"
 import AnalyticsEvent from "../models/AnalyticsEvent"
 
 export async function listOrders(req: Request, res: Response) {
@@ -65,17 +64,20 @@ export async function createOrderHandler(req: Request, res: Response) {
     doctorName: req.body.doctorName,
     items: req.body.items,
   })
-  if (req.body.referralCode) {
+  if (req.body.referralCode && order) {
     const referral = await Referral.findOne({ refCode: req.body.referralCode })
     if (referral) {
-      await ReferralAttribution.create({
-        refCode: referral.refCode,
-        retailerId: referral.retailerId,
-        customerId: req.user?.id,
-        orderId: order?._id,
-      })
-      referral.attributedOrders += 1
-      await referral.save()
+      const existing = await ReferralAttribution.findOne({ orderId: order._id })
+      if (!existing) {
+        await ReferralAttribution.create({
+          refCode: referral.refCode,
+          retailerId: referral.retailerId,
+          customerId: req.user?.id,
+          orderId: order._id,
+        })
+        referral.attributedOrders += 1
+        await referral.save()
+      }
     }
   }
   if (order) {
@@ -85,15 +87,7 @@ export async function createOrderHandler(req: Request, res: Response) {
       eventType: "order_placed",
       metadata: { orderId: order._id, netAmount: order.netAmount },
     })
-    const points = Math.max(Math.floor((order.netAmount || 0) / 100), 0)
-    if (points > 0) {
-      await LoyaltyLedger.create({
-        userId: req.user?.id,
-        points,
-        type: "EARN",
-        source: "ORDER",
-      })
-    }
+    // Loyalty points credited only on payment success (Razorpay verify/webhook), not on order placement
   }
   return sendSuccess(res, order, "Order created")
 }

@@ -16,21 +16,14 @@ jest.mock("../utils/orderNumber", () => ({
 const saveMock = jest.fn()
 const productMock = { _id: "prod1", currentStock: 10, ptr: 28, mrp: 35, gstPercent: 5, name: "Prod", save: saveMock }
 
-function mockExists(res: boolean) {
-  return jest.fn().mockReturnValue({ session: () => Promise.resolve(res) })
-}
-function mockCreate(res: unknown[]) {
-  return jest.fn().mockResolvedValue(res)
-}
-
 jest.mock("../models/Product", () => ({
   findById: jest.fn(),
 }))
 
 jest.mock("../models/Order", () => ({
   findById: jest.fn(),
-  exists: mockExists(false),
-  create: mockCreate([{ _id: "order1", netAmount: 100 }]),
+  exists: jest.fn().mockResolvedValue(null),
+  create: jest.fn().mockResolvedValue([{ _id: "order1", netAmount: 100 }]),
 }))
 
 const Product = require("../models/Product")
@@ -40,10 +33,8 @@ describe("orderService.createOrder", () => {
   beforeEach(() => {
     jest.clearAllMocks()
     productMock.currentStock = 10
-    Product.findById.mockReturnValue({
-      session: () => Promise.resolve(productMock),
-    })
-    Order.exists.mockReturnValue({ session: () => Promise.resolve(false) })
+    Product.findById.mockResolvedValue(productMock)
+    Order.exists.mockResolvedValue(null)
     Order.create.mockResolvedValue([{ _id: "order1", netAmount: 100 }])
   })
 
@@ -62,9 +53,7 @@ describe("orderService.createOrder", () => {
 
   it("cannot create order if stock insufficient", async () => {
     productMock.currentStock = 2
-    Product.findById.mockReturnValue({
-      session: () => Promise.resolve(productMock),
-    })
+    Product.findById.mockResolvedValue(productMock)
 
     await expect(
       createOrder({
@@ -94,12 +83,8 @@ describe("orderService.updateOrderStatus", () => {
     jest.clearAllMocks()
     productMock.currentStock = 5
     orderMock.status = "PLACED"
-    Order.findById.mockReturnValue({
-      session: () => Promise.resolve(orderMock),
-    })
-    Product.findById.mockReturnValue({
-      session: () => Promise.resolve(productMock),
-    })
+    Order.findById.mockResolvedValue(orderMock)
+    Product.findById.mockResolvedValue(productMock)
   })
 
   it("restocks items when cancelling", async () => {

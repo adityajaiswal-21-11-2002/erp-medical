@@ -100,7 +100,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                   {menuItems.map((item) => (
                     <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton asChild tooltip={item.title}>
-                        <a href={item.href} className="flex items-center space-x-2">
+                        <a
+                          href={item.href}
+                          className="flex items-center space-x-2 cursor-pointer transition-all duration-200 hover:bg-muted rounded-md"
+                        >
                           <item.icon className="size-4 shrink-0" aria-hidden />
                           <span>{item.title}</span>
                         </a>
@@ -152,7 +155,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               </Button>
             </div>
           </header>
-          <main className="flex-1 p-4 md:p-6 space-y-4 md:space-y-6">{children}</main>
+          <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-4 md:py-6 space-y-4 md:space-y-6">
+            {children}
+          </main>
         </SidebarInset>
       </div>
     </SidebarProvider>

@@ -12,7 +12,7 @@ const mockOrder = {
   customerAddress: "Addr",
   items: [{ product: "p1", quantity: 1, amount: 100 }],
   netAmount: 100,
-  populate: jest.fn().mockResolvedThis(),
+  populate: jest.fn().mockReturnThis(),
 }
 
 const mockShipment = {
@@ -50,15 +50,27 @@ jest.mock("../models/WebhookEvent", () => ({
 }))
 
 jest.mock("../models/User", () => ({
-  findById: jest.fn().mockResolvedValue({ _id: "user1", status: "ACTIVE", role: "ADMIN", email: "a@b.com", name: "Admin" }),
+  findById: jest.fn().mockResolvedValue({
+    _id: "507f1f77bcf86cd799439011",
+    status: "ACTIVE",
+    role: "ADMIN",
+    email: "a@b.com",
+    name: "Admin",
+  }),
 }))
 
 jest.mock("../models/AccountProfile", () => ({
-  findOne: jest.fn().mockResolvedValue({ accountType: "DISTRIBUTOR", userId: "user1" }),
+  findOne: jest.fn().mockResolvedValue({
+    accountType: "DISTRIBUTOR",
+    userId: "507f1f77bcf86cd799439011",
+  }),
 }))
 
 jest.mock("../utils/token", () => ({
-  verifyAccessToken: jest.fn().mockReturnValue({ userId: "user1", role: "ADMIN" }),
+  verifyAccessToken: jest.fn().mockReturnValue({
+    userId: "507f1f77bcf86cd799439011",
+    role: "ADMIN",
+  }),
 }))
 
 describe("Shipments", () => {

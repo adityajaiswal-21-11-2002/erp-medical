@@ -6,6 +6,7 @@ import {
   verifyRazorpayPayment,
   listRazorpayPayments,
   listWebhookEvents,
+  getRazorpayPublicKey,
 } from "../controllers/razorpayController"
 import { requireAuth } from "../middleware/auth"
 import { requireRole } from "../middleware/role"
@@ -43,6 +44,7 @@ const razorpayVerifySchema = z.object({
   }),
 })
 
+router.get("/razorpay/key", requireAuth, getRazorpayPublicKey)
 router.use(requireAuth)
 router.post("/intent", validate(intentSchema), createPaymentIntent)
 router.post("/webhook", validate(webhookSchema), paymentWebhook)

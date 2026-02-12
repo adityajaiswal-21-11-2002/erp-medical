@@ -6,6 +6,7 @@ import { ThemeProvider } from './theme-provider'
 import { AuthProvider } from './auth-context'
 import { CartProvider } from './cart-context'
 import { Toaster } from '@/components/ui/sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import './globals.css'
 
 const geist = Geist({ 
@@ -50,9 +51,11 @@ export default function RootLayout({
       <head />
       <body className="font-sans antialiased">
         <ThemeProvider>
-          <AuthProvider>
-            <CartProvider>{children}</CartProvider>
-          </AuthProvider>
+          <TooltipProvider delayDuration={300}>
+            <AuthProvider>
+              <CartProvider>{children}</CartProvider>
+            </AuthProvider>
+          </TooltipProvider>
         </ThemeProvider>
         <Toaster />
         <Analytics />

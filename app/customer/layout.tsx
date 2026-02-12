@@ -57,7 +57,7 @@ function CustomerLayoutInner({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         {refCode && !dismissed && (
           <div className="bg-muted/60 border-b border-border">
-            <div className="mx-auto max-w-6xl px-4 py-2 flex items-center justify-between text-xs text-muted-foreground">
+            <div className="mx-auto max-w-7xl px-4 py-2 flex items-center justify-between text-xs text-muted-foreground">
               <span>Referred by {refCode}</span>
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleDismiss} aria-label="Dismiss referral">
                 <X className="size-3" />
@@ -65,7 +65,7 @@ function CustomerLayoutInner({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         )}
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-3 sm:gap-4">
+        <div className="mx-auto max-w-7xl px-4 py-3 flex items-center gap-3 sm:gap-4">
           <Link href="/customer" className="flex items-center gap-2 min-w-0 shrink-0">
             <div className="w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold shrink-0">
               PH
@@ -122,7 +122,7 @@ function CustomerLayoutInner({ children }: { children: React.ReactNode }) {
       {cartCount > 0 && <div className="h-16 md:hidden" aria-hidden />}
 
       <footer className="border-t border-border bg-background mt-auto">
-        <div className="mx-auto max-w-6xl px-4 py-6 text-xs text-muted-foreground flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+        <div className="mx-auto max-w-7xl px-4 py-6 text-xs text-muted-foreground flex flex-col md:flex-row md:items-center md:justify-between gap-2">
           <span>© 2026 PharmaHub. All rights reserved.</span>
           <span>Support: help@pharmahub.com</span>
         </div>

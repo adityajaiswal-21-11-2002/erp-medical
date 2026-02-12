@@ -29,7 +29,7 @@ export function ErrorState({
   return (
     <Empty
       className={cn(
-        "border border-dashed border-border rounded-lg bg-muted/30",
+        "border border-dashed border-border rounded-2xl bg-muted/30 p-8 md:p-12",
         className
       )}
     >
@@ -54,7 +54,7 @@ export function ErrorState({
             size="sm"
             onClick={onRetry}
             aria-label="Retry loading"
-            className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="cursor-pointer transition-all duration-200 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             Try again
           </Button>

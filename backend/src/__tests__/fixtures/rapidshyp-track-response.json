@@ -1,0 +1,8 @@
+{
+  "awb": "AWB123456789",
+  "status": "IN_TRANSIT",
+  "tracking": {
+    "current_status": "In Transit",
+    "scans": []
+  }
+}

@@ -11,6 +11,11 @@ import { sendSuccess } from "../utils/response"
 const RAZORPAY_KEY_SECRET = env.razorpayKeySecret || ""
 const RAZORPAY_WEBHOOK_SECRET = env.razorpayWebhookSecret || ""
 
+/** Returns the public Razorpay key id (RAZORPAY_KEY_ID) for frontend checkout. */
+export async function getRazorpayPublicKey(_req: Request, res: Response) {
+  return sendSuccess(res, { keyId: env.razorpayKeyId || "" }, "OK")
+}
+
 function isWebhookConfigured(): boolean {
   const s = (RAZORPAY_WEBHOOK_SECRET || "").trim()
   if (!s) return false
@@ -101,7 +106,9 @@ export async function verifyRazorpayPayment(req: Request, res: Response) {
     throw new AppError("Missing payment verification fields", 400)
   }
   const valid = verifyPaymentSignature(razorpay_order_id, razorpay_payment_id, razorpay_signature)
-  if (!valid) throw new AppError("Invalid signature", 400)
+  if (!valid) {
+    return res.status(400).json({ success: false, error: "Invalid signature" })
+  }
   const payment = await Payment.findOne({ orderId: internalOrderId })
   if (!payment) throw new AppError("Payment record not found", 404)
   if (payment.status === "CAPTURED") {

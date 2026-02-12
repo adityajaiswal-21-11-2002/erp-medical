@@ -23,6 +23,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TruncatedText } from "@/components/ui/truncated-text"
+import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { FilterBar } from "./filter-bar"
@@ -37,6 +39,8 @@ export interface ResponsiveDataTableColumn<T = unknown> {
   /** For mobile card: primary field shown as title */
   primary?: boolean
   width?: string
+  /** Truncate long text and show tooltip (default true for string columns) */
+  truncate?: boolean
 }
 
 export interface ResponsiveDataTableProps<T = unknown> {
@@ -57,6 +61,10 @@ export interface ResponsiveDataTableProps<T = unknown> {
   keyExtractor: (row: T) => string
   emptyMessage?: string
   filterContent?: React.ReactNode
+  /** Primary action in toolbar (e.g. Create, Refresh) */
+  toolbarAction?: React.ReactNode
+  /** Debounce delay for search in ms (uncontrolled mode only). Default 300. */
+  searchDebounceMs?: number
 }
 
 export function ResponsiveDataTable<T extends Record<string, unknown>>({
@@ -73,11 +81,15 @@ export function ResponsiveDataTable<T extends Record<string, unknown>>({
   keyExtractor,
   emptyMessage = "No data found",
   filterContent,
+  toolbarAction,
+  searchDebounceMs = 300,
 }: ResponsiveDataTableProps<T>) {
   const isMobile = useIsMobile()
   const [internalSearch, setInternalSearch] = React.useState("")
   const isControlled = onSearchChange !== undefined
-  const resolvedSearch = isControlled ? (searchValue ?? "") : internalSearch
+  const debouncedInternalSearch = useDebouncedValue(internalSearch, searchDebounceMs)
+  const resolvedSearch = isControlled ? (searchValue ?? "") : debouncedInternalSearch
+  const searchInputValue = isControlled ? (searchValue ?? "") : internalSearch
   const handleSearchChange = isControlled ? onSearchChange! : setInternalSearch
   const [sortKey, setSortKey] = React.useState<string | null>(null)
   const [sortDir, setSortDir] = React.useState<"asc" | "desc">("asc")
@@ -141,14 +153,15 @@ export function ResponsiveDataTable<T extends Record<string, unknown>>({
       <div className="space-y-4">
         <FilterBar
           searchPlaceholder={searchPlaceholder}
-          searchValue={resolvedSearch}
+          searchValue={searchInputValue}
           onSearchChange={handleSearchChange}
           filterContent={filterContent}
           resultCount={sorted.length}
+          primaryAction={toolbarAction}
         />
         <div className="space-y-3">
           {paginated.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-border bg-muted/30 py-8 text-center text-sm text-muted-foreground">
+            <div className="rounded-2xl border border-dashed border-border bg-muted/30 py-10 text-center text-sm text-muted-foreground">
               {emptyMessage}
             </div>
           ) : (
@@ -158,8 +171,8 @@ export function ResponsiveDataTable<T extends Record<string, unknown>>({
                 <Card
                   key={key}
                   className={cn(
-                    "border-border cursor-pointer transition-colors hover:bg-muted/50",
-                    onRowClick && "cursor-pointer"
+                    "border-border transition-all duration-200 hover:shadow-md",
+                    onRowClick && "cursor-pointer hover:bg-muted/50"
                   )}
                   onClick={() => onRowClick?.(row)}
                 >
@@ -243,6 +256,7 @@ export function ResponsiveDataTable<T extends Record<string, unknown>>({
                 disabled={page <= 1}
                 onClick={() => setPage((p) => p - 1)}
                 aria-label="Previous page"
+                className="cursor-pointer transition-all duration-200 disabled:cursor-not-allowed"
               >
                 Previous
               </Button>
@@ -252,6 +266,7 @@ export function ResponsiveDataTable<T extends Record<string, unknown>>({
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => p + 1)}
                 aria-label="Next page"
+                className="cursor-pointer transition-all duration-200 disabled:cursor-not-allowed"
               >
                 Next
               </Button>
@@ -266,20 +281,21 @@ export function ResponsiveDataTable<T extends Record<string, unknown>>({
     <div className="space-y-4">
       <FilterBar
         searchPlaceholder={searchPlaceholder}
-        searchValue={resolvedSearch}
+        searchValue={searchInputValue}
         onSearchChange={handleSearchChange}
         filterContent={filterContent}
         resultCount={sorted.length}
+        primaryAction={toolbarAction}
       />
-      <div className="rounded-lg border border-border overflow-x-auto">
+      <div className="rounded-2xl overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="border-border hover:bg-transparent">
+            <TableRow className="border-border hover:bg-transparent bg-muted/50">
               {columns.map((col) => (
                 <TableHead
                   key={col.key}
                   className={cn(
-                    "font-semibold text-xs bg-muted/50",
+                    "font-semibold text-xs",
                     col.width
                   )}
                 >
@@ -287,7 +303,8 @@ export function ResponsiveDataTable<T extends Record<string, unknown>>({
                     <button
                       type="button"
                       onClick={() => handleSort(col.key)}
-                      className="flex items-center gap-1.5 hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                      className="flex items-center gap-1.5 hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded transition-all duration-200 cursor-pointer"
+                      aria-label={`Sort by ${col.label} ${sortKey === col.key ? (sortDir === "asc" ? "ascending" : "descending") : ""}`}
                     >
                       {col.label}
                       {getSortIcon(col.key)}
@@ -298,7 +315,7 @@ export function ResponsiveDataTable<T extends Record<string, unknown>>({
                 </TableHead>
               ))}
               {actions.length > 0 && (
-                <TableHead className="w-12 font-semibold text-xs bg-muted/50">
+                <TableHead className="w-12 font-semibold text-xs text-right">
                   <span className="sr-only">Actions</span>
                 </TableHead>
               )}
@@ -309,7 +326,7 @@ export function ResponsiveDataTable<T extends Record<string, unknown>>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length + (actions.length ? 1 : 0)}
-                  className="text-center text-muted-foreground py-8 text-sm"
+                  className="text-center text-muted-foreground py-10 text-sm"
                 >
                   {emptyMessage}
                 </TableCell>
@@ -321,20 +338,31 @@ export function ResponsiveDataTable<T extends Record<string, unknown>>({
                   <TableRow
                     key={key}
                     className={cn(
-                      "border-border hover:bg-muted/50",
+                      "border-border",
                       onRowClick && "cursor-pointer"
                     )}
                     onClick={() => onRowClick?.(row)}
                   >
-                    {columns.map((col) => (
-                      <TableCell key={col.key} className="py-3 text-sm">
-                        {col.render
-                          ? col.render(row[col.key], row)
-                          : String(row[col.key] ?? "")}
-                      </TableCell>
-                    ))}
+                    {columns.map((col) => {
+                      const raw = row[col.key]
+                      const isString = typeof raw === "string" || raw == null
+                      const useTruncate = col.truncate !== false && isString
+                      return (
+                        <TableCell key={col.key} className="px-4 py-3 text-sm">
+                          {col.render
+                            ? col.render(row[col.key], row)
+                            : useTruncate ? (
+                                <TruncatedText maxWidth="max-w-[220px]">
+                                  {String(raw ?? "")}
+                                </TruncatedText>
+                              ) : (
+                                String(row[col.key] ?? "")
+                              )}
+                        </TableCell>
+                      )
+                    })}
                     {actions.length > 0 && (
-                      <TableCell className="py-3">
+                      <TableCell className="px-4 py-3 text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
@@ -387,6 +415,7 @@ export function ResponsiveDataTable<T extends Record<string, unknown>>({
               disabled={page <= 1}
               onClick={() => setPage((p) => p - 1)}
               aria-label="Previous page"
+              className="cursor-pointer transition-all duration-200 disabled:cursor-not-allowed"
             >
               Previous
             </Button>
@@ -396,6 +425,7 @@ export function ResponsiveDataTable<T extends Record<string, unknown>>({
               disabled={page >= totalPages}
               onClick={() => setPage((p) => p + 1)}
               aria-label="Next page"
+              className="cursor-pointer transition-all duration-200 disabled:cursor-not-allowed"
             >
               Next
             </Button>

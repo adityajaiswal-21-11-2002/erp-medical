@@ -30,7 +30,7 @@ export default function CustomerProductPage({ params }: { params: { sku: string 
   }, [sku])
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
+    <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
       <div className="text-sm text-muted-foreground">
         <Link href="/customer/catalog" className="hover:text-foreground">
           Catalog

@@ -2,7 +2,7 @@ import { defineConfig } from "@playwright/test"
 
 export default defineConfig({
   timeout: 60000,
-  retries: process.env.CI ? 1 : 0,
+  retries: 0,
   reporter: [
     ["html", { open: "never", outputFolder: "playwright-report" }],
     ["list"],
@@ -13,7 +13,11 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "on-first-retry",
+    actionTimeout: 15000,
   },
   testDir: "./tests/e2e",
   outputDir: "test-results",
+  expect: {
+    timeout: 10000,
+  },
 })
