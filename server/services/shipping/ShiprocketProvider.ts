@@ -192,9 +192,9 @@ export async function track(awbOrShipmentId: string): Promise<TrackResult> {
   })
   const trackingData = (data as { tracking_data?: { ship_status?: string } }).tracking_data
   const shipStatus = trackingData?.ship_status || ""
-  const status = mapProviderStatusToInternal(shipStatus)
+  const mappedStatus = mapProviderStatusToInternal(shipStatus)
   return {
-    status,
+    status: mappedStatus,
     tracking: (data as Record<string, unknown>) || {},
     raw: data as unknown as Record<string, unknown>,
   }
