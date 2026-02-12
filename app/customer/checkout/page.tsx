@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { CreditCard, MapPin } from "lucide-react"
+import Script from "next/script"
+import { CreditCard, MapPin, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
 import { useCart } from "@/app/cart-context"
@@ -13,11 +14,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 
+declare global {
+  interface Window {
+    Razorpay?: any
+  }
+}
+
+const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || ""
+
 export default function CustomerCheckoutPage() {
   const router = useRouter()
   const { items, subtotal, clearCart } = useCart()
   const { user } = useAuth()
   const [refCode, setRefCode] = useState<string | null>(null)
+  const [payWithRazorpay, setPayWithRazorpay] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -30,22 +41,29 @@ export default function CustomerCheckoutPage() {
     setRefCode(localStorage.getItem("ref_code"))
   }, [])
 
+  const createOrderPayload = () => ({
+    customerName: form.name || user?.name || "Customer",
+    customerMobile: form.phone || "0000000000",
+    customerAddress: `${form.address} ${form.city} ${form.pincode}`.trim() || "Address",
+    items: items.map((item) => ({
+      product: item.productId,
+      quantity: item.quantity,
+    })),
+    referralCode: refCode || undefined,
+  })
+
   const handlePlaceOrder = async () => {
     if (!items.length) {
       toast.error("Cart is empty")
       return
     }
+    if (payWithRazorpay && razorpayKeyId) {
+      await handleRazorpayCheckout()
+      return
+    }
     try {
-      const payload = {
-        customerName: form.name || user?.name || "Customer",
-        customerMobile: form.phone || "0000000000",
-        customerAddress: `${form.address} ${form.city} ${form.pincode}`.trim() || "Address",
-        items: items.map((item) => ({
-          product: item.productId,
-          quantity: item.quantity,
-        })),
-        referralCode: refCode || undefined,
-      }
+      setLoading(true)
+      const payload = createOrderPayload()
       const res = await api.post("/api/orders", payload)
       await api.post("/api/payments/intent", {
         orderId: res.data?.data?._id,
@@ -56,6 +74,62 @@ export default function CustomerCheckoutPage() {
       router.push("/customer/orders")
     } catch (error: any) {
       toast.error(error?.response?.data?.error || "Failed to place order")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRazorpayCheckout = async () => {
+    if (!razorpayKeyId) {
+      toast.error("Online payment not configured")
+      return
+    }
+    setLoading(true)
+    try {
+      const payload = createOrderPayload()
+      const orderRes = await api.post("/api/orders", payload)
+      const orderId = orderRes.data?.data?._id
+      if (!orderId) throw new Error("Order not created")
+      const rzRes = await api.post("/api/payments/razorpay/order", { orderId })
+      const data = rzRes.data?.data
+      if (!data?.razorpayOrderId || !data?.keyId) throw new Error("Razorpay order failed")
+      const options = {
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency || "INR",
+        name: data.name || "PharmaHub",
+        description: data.description || "Order payment",
+        order_id: data.razorpayOrderId,
+        prefill: data.prefill || {},
+        handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+          try {
+            await api.post("/api/payments/razorpay/verify", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              internalOrderId: orderId,
+            })
+            clearCart()
+            toast.success("Payment successful. Order placed.")
+            router.push("/customer/orders")
+          } catch (e: any) {
+            toast.error(e?.response?.data?.error || "Payment verification failed")
+          } finally {
+            setLoading(false)
+          }
+        },
+        modal: { ondismiss: () => setLoading(false) },
+      }
+      if (typeof window !== "undefined" && window.Razorpay) {
+        const rz = new window.Razorpay(options)
+        rz.open()
+      } else {
+        toast.error("Payment gateway not loaded")
+        setLoading(false)
+      }
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || "Failed to place order")
+      setLoading(false)
     }
   }
 
@@ -100,18 +174,26 @@ export default function CustomerCheckoutPage() {
             <CardTitle className="text-base">Payment</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-lg border bg-muted/30 p-3 flex items-center gap-3">
-              <CreditCard className="w-4 h-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">UPI / Netbanking</p>
-                <p className="text-xs text-muted-foreground">Pay within 24 hours</p>
+            {razorpayKeyId && (
+              <div
+                className={`rounded-lg border p-3 flex items-center gap-3 cursor-pointer ${payWithRazorpay ? "border-primary bg-primary/5" : "bg-muted/30"}`}
+                onClick={() => setPayWithRazorpay(true)}
+              >
+                <CreditCard className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Pay online (Razorpay)</p>
+                  <p className="text-xs text-muted-foreground">Card, UPI, Netbanking</p>
+                </div>
               </div>
-            </div>
-            <div className="rounded-lg border bg-muted/30 p-3 flex items-center gap-3">
+            )}
+            <div
+              className={`rounded-lg border p-3 flex items-center gap-3 cursor-pointer ${!payWithRazorpay ? "border-primary bg-primary/5" : "bg-muted/30"}`}
+              onClick={() => setPayWithRazorpay(false)}
+            >
               <MapPin className="w-4 h-4 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium">Pay on Delivery</p>
-                <p className="text-xs text-muted-foreground">Available for select regions</p>
+                <p className="text-sm font-medium">Place order (pay later)</p>
+                <p className="text-xs text-muted-foreground">Pay on delivery or later</p>
               </div>
             </div>
             {refCode && (
@@ -119,12 +201,19 @@ export default function CustomerCheckoutPage() {
                 Referral applied: <span className="font-medium text-foreground">{refCode}</span>
               </div>
             )}
-            <Button className="w-full" onClick={handlePlaceOrder}>
-              Place order
+            <Button className="w-full" onClick={handlePlaceOrder} disabled={loading}>
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              {payWithRazorpay && razorpayKeyId ? "Pay with Razorpay" : "Place order"}
             </Button>
           </CardContent>
         </Card>
       </div>
+      {razorpayKeyId && (
+        <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="afterInteractive"
+        />
+      )}
     </div>
   )
 }

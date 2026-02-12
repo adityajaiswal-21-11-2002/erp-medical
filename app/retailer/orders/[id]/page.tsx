@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { StatusBadge } from "@/components/status-badge"
+import { Truck } from "lucide-react"
 
 type OrderDetail = {
   _id: string
@@ -28,10 +29,17 @@ type OrderDetail = {
   netAmount: number
 }
 
+type Shipment = {
+  awb?: string
+  courierName?: string
+  status: string
+}
+
 export default function OrderDetailPage() {
   const params = useParams()
   const orderId = params.id as string
   const [order, setOrder] = useState<OrderDetail | null>(null)
+  const [shipment, setShipment] = useState<Shipment | null>(null)
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -43,6 +51,18 @@ export default function OrderDetailPage() {
       }
     }
     fetchOrder().catch(() => undefined)
+  }, [orderId])
+
+  useEffect(() => {
+    const fetchShipment = async () => {
+      try {
+        const res = await api.get(`/api/shipments/${orderId}`)
+        setShipment(res.data?.data || null)
+      } catch {
+        setShipment(null)
+      }
+    }
+    if (orderId) fetchShipment().catch(() => undefined)
   }, [orderId])
 
   if (!order) {
@@ -142,6 +162,22 @@ export default function OrderDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      {shipment && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Truck className="w-4 h-4" />
+              Shipping
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm">Courier: {shipment.courierName || "-"}</p>
+            <p className="text-sm">AWB: <span className="font-mono">{shipment.awb || "-"}</span></p>
+            <p className="text-sm text-muted-foreground">Status: {shipment.status}</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

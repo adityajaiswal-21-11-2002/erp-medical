@@ -26,6 +26,8 @@ import paymentRoutes from "./routes/payments"
 import returnRoutes from "./routes/returns"
 import couponRoutes from "./routes/coupons"
 import distributorRoutes from "./routes/distributor"
+import shipmentRoutes from "./routes/shipments"
+import webhookRoutes from "./routes/webhooks"
 import { errorHandler } from "./middleware/error"
 import { swaggerSpec } from "./swagger"
 import { sendSuccess } from "./utils/response"
@@ -82,6 +84,8 @@ app.use("/api/payments", paymentRoutes)
 app.use("/api/returns", returnRoutes)
 app.use("/api/coupons", couponRoutes)
 app.use("/api/distributor", distributorRoutes)
+app.use("/api/shipments", shipmentRoutes)
+app.use("/api/webhooks", webhookRoutes)
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 app.use(errorHandler)

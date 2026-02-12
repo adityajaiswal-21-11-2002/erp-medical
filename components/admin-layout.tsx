@@ -22,6 +22,8 @@ import {
   LogOut,
   Sun,
   Moon,
+  Plug,
+  Truck,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -49,6 +51,8 @@ const menuItems = [
   { title: "ERP Sync", icon: RefreshCw, href: "/admin/erp-sync", id: "erp-sync" },
   { title: "Loyalty & Schemes", icon: Activity, href: "/admin/loyalty", id: "loyalty" },
   { title: "Payments", icon: CreditCard, href: "/admin/payments", id: "payments" },
+  { title: "Integrations", icon: Plug, href: "/admin/integrations", id: "integrations" },
+  { title: "Shipping Logs", icon: Truck, href: "/admin/shipping-logs", id: "shipping-logs" },
   { title: "Analytics", icon: BarChart3, href: "/admin/analytics", id: "analytics" },
   { title: "Compliance Logs", icon: ShieldCheck, href: "/admin/compliance", id: "compliance" },
   { title: "Banners", icon: Bell, href: "/admin/banners", id: "banners" },

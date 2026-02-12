@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from "react"
-import { Download } from "lucide-react"
+import { Download, Truck } from "lucide-react"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
 
@@ -20,6 +20,7 @@ import {
 export default function CustomerOrderDetailPage({ params }: { params: { id: string } }) {
   const orderId = params.id
   const [order, setOrder] = useState<any>(null)
+  const [shipment, setShipment] = useState<any>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -31,6 +32,18 @@ export default function CustomerOrderDetailPage({ params }: { params: { id: stri
       }
     }
     load().catch(() => undefined)
+  }, [orderId])
+
+  useEffect(() => {
+    const loadShipment = async () => {
+      try {
+        const res = await api.get(`/api/shipments/${orderId}`)
+        setShipment(res.data?.data || null)
+      } catch {
+        setShipment(null)
+      }
+    }
+    if (orderId) loadShipment().catch(() => undefined)
   }, [orderId])
 
   const timeline = [
@@ -94,6 +107,22 @@ export default function CustomerOrderDetailPage({ params }: { params: { id: stri
           </CardContent>
         </Card>
       </div>
+
+      {shipment && (
+        <Card className="border">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Truck className="w-4 h-4" />
+              Tracking
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm">Courier: {shipment.courierName || "-"}</p>
+            <p className="text-sm">AWB: <span className="font-mono">{shipment.awb || "-"}</span></p>
+            <p className="text-sm text-muted-foreground">Status: {shipment.status}</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

@@ -75,10 +75,12 @@ export async function runHandler(
   request: NextRequest,
   params: Record<string, string>,
   chain: (NextHandler | NextHandler[])[],
-  bodyOverride?: unknown
+  bodyOverride?: unknown,
+  rawBody?: string
 ): Promise<NextResponse> {
   const { req, res, nextResponse } = buildReqResFromNextRequest(request, params)
   req.body = bodyOverride ?? (await parseBody(request))
+  if (rawBody !== undefined) (req as any).rawBody = rawBody
   req.query = parseQuery(request.url)
 
   const flat = chain.flat()
