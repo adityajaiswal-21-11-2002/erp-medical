@@ -257,18 +257,18 @@ export function ProductCatalog() {
               <CardDescription>Click on a product to view details</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredProducts.map((product) => (
                   <Card
                     key={product.id}
-                    className="border hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
+                    className="border hover:shadow-md transition-shadow cursor-pointer overflow-hidden h-full flex flex-col"
                     onClick={() => {
                       setSelectedProduct(product)
                       setDetailsOpen(true)
                     }}
                   >
-                    <CardContent className="p-0">
-                      <div className="aspect-square bg-muted/40 flex items-center justify-center">
+                    <CardContent className="p-0 flex-1 flex flex-col min-h-0">
+                      <div className="aspect-square bg-muted/40 flex items-center justify-center shrink-0">
                         {product.photoBase64 ? (
                           <img
                             src={product.photoBase64.startsWith("data:") ? product.photoBase64 : `data:image/jpeg;base64,${product.photoBase64}`}
@@ -282,10 +282,10 @@ export function ProductCatalog() {
                           </div>
                         )}
                       </div>
-                      <div className="p-3 space-y-2">
+                      <div className="p-3 space-y-2 flex-1 flex flex-col min-h-0">
                         <p className="text-xs font-medium text-blue-600">{product.id}</p>
                         <p className="text-sm font-semibold line-clamp-2">{product.name}</p>
-                        <p className="text-xs text-muted-foreground">{product.manufacturer}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-3 min-h-[2.25rem]">{product.manufacturer}</p>
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-semibold">₹{product.price.toFixed(2)}</span>
                           {getStatusBadge(product.status)}

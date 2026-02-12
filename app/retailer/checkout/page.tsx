@@ -56,7 +56,6 @@ export default function CheckoutPage() {
       }
       const res = await api.post("/api/orders", payload)
       const orderId = res.data?.data?._id
-      await api.post("/api/payments/intent", { orderId, amount: subtotal })
       toast.success("Order placed")
       clearCart()
       router.push(orderId ? `/retailer/orders/${orderId}` : "/retailer/orders")

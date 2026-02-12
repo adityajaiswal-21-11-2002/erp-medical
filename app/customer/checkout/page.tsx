@@ -64,11 +64,7 @@ export default function CustomerCheckoutPage() {
     try {
       setLoading(true)
       const payload = createOrderPayload()
-      const res = await api.post("/api/orders", payload)
-      await api.post("/api/payments/intent", {
-        orderId: res.data?.data?._id,
-        amount: subtotal,
-      })
+      await api.post("/api/orders", payload)
       clearCart()
       toast.success("Order placed successfully")
       router.push("/customer/orders")

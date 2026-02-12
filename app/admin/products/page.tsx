@@ -101,11 +101,19 @@ export default function AdminProductsPage() {
     defaultValues: { photoBase64: "" },
   })
 
+  const minLoadingMs = 400
   const fetchProducts = async () => {
     setLoading(true)
+    const started = Date.now()
     try {
       const res = await api.get("/api/products?limit=200")
-      setProducts(res.data?.data?.items || [])
+      const items = res.data?.data?.items || []
+      setProducts(items)
+      const elapsed = Date.now() - started
+      const remaining = Math.max(0, minLoadingMs - elapsed)
+      if (remaining > 0) {
+        await new Promise((r) => setTimeout(r, remaining))
+      }
     } catch (error: any) {
       toast.error(error?.response?.data?.error || "Failed to load products")
     } finally {

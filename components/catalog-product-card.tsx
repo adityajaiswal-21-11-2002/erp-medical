@@ -69,30 +69,27 @@ export function CatalogProductCard({
   const availability = product.stockStatus === 'OUT' ? 'out-of-stock' : product.stockStatus === 'LOW' ? 'low-stock' : 'in-stock'
   const isOutOfStock = availability === 'out-of-stock'
 
+  const descriptionParts = [product.genericName, product.packaging, product.category].filter(Boolean)
+  const descriptionText = descriptionParts.join(' · ')
+
   return (
     <Card className="border hover:shadow-md transition-shadow h-full flex flex-col">
-      <Link href={productLink} className="block flex-1">
-        <CardContent className="pt-4 space-y-3 flex-1 flex flex-col">
-          <div className="aspect-square rounded-lg overflow-hidden bg-muted/40">
+      <Link href={productLink} className="block flex-1 flex flex-col min-h-0">
+        <CardContent className="pt-4 space-y-3 flex-1 flex flex-col min-h-0">
+          <div className="aspect-square rounded-lg overflow-hidden bg-muted/40 shrink-0">
             <ProductImage
               photoBase64={product.photoBase64}
               name={product.name}
               className="w-full h-full"
             />
           </div>
-          <div className="flex-1 space-y-1">
+          <div className="flex-1 flex flex-col min-h-0 space-y-1">
             <p className="text-sm font-semibold line-clamp-2">{product.name}</p>
-            {product.genericName && (
-              <p className="text-xs text-muted-foreground">{product.genericName}</p>
-            )}
-            {product.packaging && (
-              <p className="text-xs text-muted-foreground">{product.packaging}</p>
-            )}
-            {product.category && (
-              <p className="text-xs text-muted-foreground">{product.category}</p>
-            )}
+            <div className="min-h-[3.75rem] text-xs text-muted-foreground line-clamp-3" title={descriptionText}>
+              {descriptionText || '\u00A0'}
+            </div>
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between shrink-0">
             <span className="text-lg font-semibold">₹{product.mrp}</span>
             <Badge
               variant={

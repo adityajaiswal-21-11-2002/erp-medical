@@ -9,7 +9,7 @@ import {
   FilterBar,
   EmptyState,
   ErrorState,
-  CardListSkeleton,
+  CardGridSkeleton,
   toast,
 } from "@/components/ui-kit"
 import { Card, CardContent } from "@/components/ui/card"
@@ -43,12 +43,20 @@ function CustomerCatalogContent() {
 
   useEffect(() => {
     trackEvent("page_view", { page: "customer_catalog" })
+    const minLoadingMs = 400
     const load = async () => {
       setLoading(true)
       setError(null)
+      const started = Date.now()
       try {
         const res = await api.get("/api/products?limit=200")
-        setProducts(res.data?.data?.items ?? [])
+        const items = res.data?.data?.items ?? []
+        setProducts(items)
+        const elapsed = Date.now() - started
+        const remaining = Math.max(0, minLoadingMs - elapsed)
+        if (remaining > 0) {
+          await new Promise((r) => setTimeout(r, remaining))
+        }
       } catch (err: unknown) {
         const msg =
           err && typeof err === "object" && "response" in err && err.response && typeof err.response === "object" && "data" in err.response && err.response.data && typeof err.response.data === "object" && "error" in err.response.data
@@ -137,7 +145,7 @@ function CustomerCatalogContent() {
             </CardContent>
           </Card>
 
-          {loading && <CardListSkeleton count={6} />}
+          {loading && <CardGridSkeleton count={6} />}
 
           {!loading && filteredProducts.length === 0 && (
             <EmptyState
@@ -191,7 +199,7 @@ export default function CustomerCatalogPage() {
       fallback={
         <PageShell maxWidth="content" className="space-y-4 md:space-y-6">
           <div className="h-20 rounded-lg bg-muted/30 animate-pulse" />
-          <CardListSkeleton count={6} />
+          <CardGridSkeleton count={6} />
         </PageShell>
       }
     >

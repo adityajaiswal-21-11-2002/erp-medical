@@ -31,6 +31,7 @@ export type { ErrorStateProps } from "./error-state"
 export {
   TableSkeleton,
   CardListSkeleton,
+  CardGridSkeleton,
   StatCardsSkeleton,
   FormSkeleton,
 } from "./skeletons"

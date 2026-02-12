@@ -68,6 +68,34 @@ export function CardListSkeleton({
   )
 }
 
+/** Product/catalog card grid: 3 cards per row on desktop, card-shaped skeletons */
+export function CardGridSkeleton({
+  count = 6,
+  className,
+}: {
+  count?: number
+  className?: string
+}) {
+  return (
+    <div className={cn("grid gap-4 sm:grid-cols-2 lg:grid-cols-3", className)}>
+      {Array.from({ length: count }).map((_, i) => (
+        <Card key={i} className="border-border h-full flex flex-col overflow-hidden">
+          <Skeleton className="aspect-square w-full shrink-0 rounded-none" />
+          <CardContent className="p-4 space-y-2 flex-1">
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-full" />
+            <div className="flex justify-between pt-2">
+              <Skeleton className="h-6 w-16" />
+              <Skeleton className="h-5 w-20" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
 export function StatCardsSkeleton({ count = 4 }: { count?: number }) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6">
