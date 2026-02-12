@@ -143,10 +143,13 @@ function CustomerCatalogContent() {
             <EmptyState
               title="No products found"
               description="Try changing filters or search."
-              action={{ label: "Clear filters", onClick: () => {
-                setSearchTerm("")
-                setCategory("all")
-                setPriceRange("all")
+              action={{
+                label: "Clear filters",
+                onClick: () => {
+                  setSearchTerm("")
+                  setCategory("all")
+                  setPriceRange("all")
+                },
               }}
             />
           )}
