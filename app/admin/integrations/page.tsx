@@ -26,6 +26,8 @@ export default function IntegrationsPage() {
   const [loading, setLoading] = useState<string | null>(null)
   const [diagnostic, setDiagnostic] = useState<DiagnosticResult | null>(null)
   const [diagnosticOpen, setDiagnosticOpen] = useState(false)
+  const [rapidshypDiagnostic, setRapidshypDiagnostic] = useState<DiagnosticResult | null>(null)
+  const [rapidshypDiagnosticOpen, setRapidshypDiagnosticOpen] = useState(false)
 
   const testShiprocket = async () => {
     setLoading("shiprocket")
@@ -61,11 +63,31 @@ export default function IntegrationsPage() {
 
   const testRapidshyp = async () => {
     setLoading("rapidshyp")
+    setRapidshypDiagnostic(null)
     try {
       const res = await api.get("/api/shipments/integrations/rapidshyp/test")
       setRapidshyp(res.data?.data || { connected: false })
     } catch (e) {
       setRapidshyp({ connected: false, error: getErrorMessage(e, "Request failed") })
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  const runRapidshypDiagnostic = async () => {
+    setLoading("rapidshyp-diagnose")
+    setRapidshypDiagnostic(null)
+    setRapidshypDiagnosticOpen(true)
+    try {
+      const res = await api.get("/api/shipments/integrations/rapidshyp/diagnose")
+      setRapidshypDiagnostic(res.data?.data || null)
+    } catch (e) {
+      setRapidshypDiagnostic({
+        provider: "RAPIDSHYP",
+        allPass: false,
+        checks: [{ name: "Request", pass: false, message: getErrorMessage(e, "Failed to run diagnostic") }],
+        summary: "Error",
+      })
     } finally {
       setLoading(null)
     }
@@ -160,24 +182,60 @@ export default function IntegrationsPage() {
               <Truck className="w-4 h-4" />
               RapidShyp
             </CardTitle>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={testRapidshyp}
-              disabled={loading !== null}
-            >
-              {loading === "rapidshyp" ? <Loader2 className="w-4 h-4 animate-spin" /> : "Test"}
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={testRapidshyp}
+                disabled={loading !== null}
+              >
+                {loading === "rapidshyp" ? <Loader2 className="w-4 h-4 animate-spin" /> : "Test"}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={runRapidshypDiagnostic}
+                disabled={loading !== null}
+                title="Run automated diagnostic for RapidShyp"
+              >
+                {loading === "rapidshyp-diagnose" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Stethoscope className="w-4 h-4" />}
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-2">
             {rapidshyp === null ? (
-              <p className="text-xs text-muted-foreground">Click Test to check connectivity.</p>
+              <p className="text-xs text-muted-foreground">Click Test to check connectivity, or Diagnose to run full checks.</p>
             ) : rapidshyp.connected ? (
               <p className="text-xs text-green-600 dark:text-green-400">Connected</p>
             ) : (
               <p className="text-xs text-amber-600 dark:text-amber-400">
                 {rapidshyp.error || "Not connected"}
               </p>
+            )}
+            {rapidshypDiagnostic && (
+              <Collapsible open={rapidshypDiagnosticOpen} onOpenChange={setRapidshypDiagnosticOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-xs h-auto py-1 -mb-1">
+                    {rapidshypDiagnostic.allPass ? (
+                      <span className="text-green-600 dark:text-green-400">{rapidshypDiagnostic.summary} ✓</span>
+                    ) : (
+                      <span className="text-amber-600 dark:text-amber-400">{rapidshypDiagnostic.summary}</span>
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="mt-2 pt-2 border-t space-y-1 text-xs">
+                    {rapidshypDiagnostic.checks?.map((c, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        {c.pass ? <Check className="w-3.5 h-3.5 text-green-600 shrink-0" /> : <X className="w-3.5 h-3.5 text-amber-600 shrink-0" />}
+                        <span className={c.pass ? "text-muted-foreground" : "text-amber-600 dark:text-amber-400"}>
+                          {c.name}: {c.message}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             )}
           </CardContent>
         </Card>

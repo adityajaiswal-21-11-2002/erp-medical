@@ -158,9 +158,32 @@ export async function track(awbOrShipmentId: string): Promise<TrackResult> {
   }
 }
 
+/** Test API connectivity (diagnostic). Calls track endpoint with dummy AWB to verify API key. */
+export async function testApiConnectivity(): Promise<{
+  ok: boolean
+  status: number
+  message?: string
+}> {
+  await auth()
+  try {
+    const { data, status } = await request<{ message?: string; error?: string }>(
+      "POST",
+      "/rapidshyp/apis/v1/track_order",
+      { awb: "AWB000000" }
+    )
+    const authOk = status !== 401 && status !== 403
+    const msg = (data as { message?: string })?.message || (data as { error?: string })?.error
+    return { ok: authOk, status, message: msg }
+  } catch (e) {
+    return {
+      ok: false,
+      status: 401,
+      message: e instanceof Error ? e.message : String(e),
+    }
+  }
+}
+
 export async function cancel(
-  _awbOrShipmentId: string,
-): Promise<{ success: boolean; raw?: Record<string, unknown> }> {
   await auth()
   await logShippingAction({
     provider: "RAPIDSHYP",
