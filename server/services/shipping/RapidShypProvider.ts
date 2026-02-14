@@ -13,10 +13,9 @@ const BASE = (env.rapidshypBaseUrl || "https://api.rapidshyp.com").replace(/\/$/
 const API_KEY = env.rapidshypApiKey || ""
 
 async function request<T>(
-  method: string,
   path: string,
+  method: string,
   body?: Record<string, unknown>,
-  orderId?: mongoose.Types.ObjectId,
 ): Promise<{ data: T; status: number }> {
   const url = path.startsWith("http") ? path : `${BASE}${path}`
   const res = await fetch(url, {
@@ -27,7 +26,10 @@ async function request<T>(
     },
     body: body ? JSON.stringify(body) : undefined,
   })
-  const data = (await res.json()) as T
+  const contentType = res.headers.get("content-type") || ""
+  const data = (contentType.includes("application/json")
+    ? await res.json()
+    : { message: await res.text() }) as T
   return { data, status: res.status }
 }
 
@@ -49,36 +51,170 @@ export async function auth(): Promise<void> {
   })
 }
 
+function normalizeIndianPhone(s: string): string {
+  let digits = String(s || "").replace(/\D/g, "")
+  if (digits.length === 12 && digits.startsWith("91")) digits = digits.slice(2)
+  if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1)
+  return digits || String(s || "")
+}
+
+function normalizePincode(address: string): string {
+  const m = String(address || "").match(/\b(\d{6})\b/)
+  return m?.[1] || "110001"
+}
+
+function deriveCityState(address: string): { city: string; state: string } {
+  const parts = String(address || "")
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean)
+  const city = parts.length >= 2 ? parts[parts.length - 2] : "City"
+  const state = parts.length >= 1 ? parts[parts.length - 1].replace(/\b\d{6}\b/g, "").trim() || "State" : "State"
+  return { city, state }
+}
+
+function firstString(...values: unknown[]): string | undefined {
+  for (const v of values) {
+    if (typeof v === "string" && v.trim()) return v.trim()
+    if (typeof v === "number") return String(v)
+  }
+  return undefined
+}
+
+function toRecord(v: unknown): Record<string, unknown> {
+  if (v && typeof v === "object" && !Array.isArray(v)) return v as Record<string, unknown>
+  return {}
+}
+
+function extractShipmentMeta(raw: Record<string, unknown>): {
+  shipmentId?: string
+  awb?: string
+  courierName?: string
+  providerStatus?: string
+} {
+  const response = (Array.isArray(raw.response) ? raw.response[0] : raw.response) as unknown
+  const row = toRecord(response)
+  const shipments = Array.isArray(row.shipments) ? row.shipments : []
+  const firstShipment = toRecord(shipments[0])
+  const shipmentId = firstString(
+    firstShipment.shipment_id,
+    firstShipment.id,
+    row.shipment_id,
+    row.id,
+  )
+  const awb = firstString(
+    firstShipment.awb_number,
+    firstShipment.awb,
+    row.awb_number,
+    row.awb,
+  )
+  const courierName = firstString(
+    firstShipment.courier_name,
+    firstShipment.courier,
+    row.courier_name,
+    row.courier,
+  )
+  const providerStatus = firstString(
+    firstShipment.status,
+    row.shipment_status,
+    row.status,
+  )
+  return { shipmentId, awb, courierName, providerStatus }
+}
+
+async function fetchOrderInfo(
+  identifier: string,
+): Promise<{ data: Record<string, unknown>; status: number }> {
+  let res = await request<Record<string, unknown>>(
+    `/rapidshyp/apis/v1/get_orders_info?seller_order_id=${encodeURIComponent(identifier)}`,
+    "GET",
+  )
+  if (res.status >= 400) {
+    res = await request<Record<string, unknown>>(
+      `/rapidshyp/apis/v1/get_orders_info?order_id=${encodeURIComponent(identifier)}`,
+      "GET",
+    )
+  }
+  return res
+}
+
 export async function createOrderFromInternal(
   order: InternalOrderForShipping,
 ): Promise<CreateOrderResult> {
   await auth()
-  // RapidShyp Forward/Create Order: stub that returns simulated ids when exact endpoint differs.
-  // Real integration would call their create order + assign shipment endpoints.
-  const simulatedOrderId = `RS-${order.orderNumber}-${Date.now()}`
-  const simulatedShipmentId = `ship-${simulatedOrderId}`
-  const simulatedAwb = `AWB${String(Math.floor(100000 + Math.random() * 900000))}`
+  const { city, state } = deriveCityState(order.customerAddress)
+  const totalQty = order.items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0) || 1
+  const itemName = order.items
+    .map((item) => (typeof item.product === "object" && item.product?.name ? item.product.name : "Item"))
+    .join(", ")
+    .slice(0, 120) || "Item"
   const payload = {
-    order_id: order.orderNumber,
-    customer_name: order.customerName,
-    customer_phone: order.customerMobile,
-    address: order.customerAddress,
-    order_value: order.netAmount,
+    seller_order_id: order.orderNumber,
+    customer_name: order.customerName || "Customer",
+    customer_address: order.customerAddress || "Address",
+    customer_city: city,
+    customer_state: state,
+    customer_country: "India",
+    customer_pincode: normalizePincode(order.customerAddress),
+    customer_phone: normalizeIndianPhone(order.customerMobile),
+    customer_email: "order@example.com",
+    item_name: itemName,
+    package_length: 10,
+    package_breadth: 10,
+    package_height: 5,
+    package_weight: 1,
+    package_volumetric_weight: 1,
+    package_total_value: Number(order.netAmount) || 0,
+    payment_method: "prepaid",
+    total_order_qty: totalQty,
   }
   try {
+    const { data, status } = await request<Record<string, unknown>>(
+      "/rapidshyp/apis/v1/create_order",
+      "POST",
+      payload,
+    )
+    const createResponse = toRecord((data as Record<string, unknown>).response)
+    const providerOrderId = firstString(
+      createResponse.order_id,
+      createResponse.seller_order_id,
+      (data as Record<string, unknown>).order_id,
+      payload.seller_order_id,
+    ) || payload.seller_order_id
+
+    const orderInfo = await fetchOrderInfo(providerOrderId)
+    const meta = extractShipmentMeta(orderInfo.data)
+    const internalStatus = mapProviderStatusToInternal(meta.providerStatus || "CREATED")
+
     await logShippingAction({
       orderId: order._id ? new mongoose.Types.ObjectId(order._id) : undefined,
       provider: "RAPIDSHYP",
       action: "CREATE_ORDER",
       request: payload,
       response: {
-        providerOrderId: simulatedOrderId,
-        shipmentId: simulatedShipmentId,
-        awb: simulatedAwb,
-        courierName: "RapidShyp Courier",
+        create: data,
+        orderInfo: orderInfo.data,
+        parsed: {
+          providerOrderId,
+          shipmentId: meta.shipmentId,
+          awb: meta.awb,
+          courierName: meta.courierName,
+          status: internalStatus,
+        },
       },
-      statusCode: 200,
+      statusCode: status,
     })
+    if (status >= 400) {
+      throw new Error(JSON.stringify(data))
+    }
+    return {
+      providerOrderId,
+      shipmentId: meta.shipmentId,
+      awb: meta.awb,
+      courierName: meta.courierName,
+      status: meta.awb ? "AWB_ASSIGNED" : internalStatus,
+      raw: { create: data, orderInfo: orderInfo.data },
+    }
   } catch (e) {
     await logShippingAction({
       orderId: order._id ? new mongoose.Types.ObjectId(order._id) : undefined,
@@ -89,30 +225,46 @@ export async function createOrderFromInternal(
     })
     throw e
   }
-  return {
-    providerOrderId: simulatedOrderId,
-    shipmentId: simulatedShipmentId,
-    awb: simulatedAwb,
-    courierName: "RapidShyp Courier",
-    status: "AWB_ASSIGNED",
-    raw: { providerOrderId: simulatedOrderId, shipmentId: simulatedShipmentId },
-  }
 }
 
 export async function assignShipment(providerOrderId: string): Promise<AssignAwbResult> {
   await auth()
-  const simulatedAwb = `AWB${String(Math.floor(100000 + Math.random() * 900000))}`
+  let shipmentId = providerOrderId
+  const prefetch = await fetchOrderInfo(providerOrderId)
+  const preMeta = extractShipmentMeta(prefetch.data)
+  if (preMeta.awb) {
+    return {
+      shipmentId: preMeta.shipmentId,
+      awb: preMeta.awb,
+      courierName: preMeta.courierName || "RapidShyp",
+      status: "AWB_ASSIGNED",
+      raw: { orderInfo: prefetch.data },
+    }
+  }
+  if (preMeta.shipmentId) shipmentId = preMeta.shipmentId
+  const body = { shipment_id: shipmentId }
+  const { data, status } = await request<Record<string, unknown>>(
+    "/rapidshyp/apis/v1/assign_awb",
+    "POST",
+    body,
+  )
+  const meta = extractShipmentMeta(data)
   await logShippingAction({
     provider: "RAPIDSHYP",
     action: "ASSIGN",
-    request: { providerOrderId },
-    response: { awb: simulatedAwb, courierName: "RapidShyp Courier" },
-    statusCode: 200,
+    request: { providerOrderId, shipmentId, body },
+    response: data,
+    statusCode: status,
   })
+  if (status >= 400 || !meta.awb) {
+    throw new Error("AWB assign failed: " + JSON.stringify(data))
+  }
   return {
-    awb: simulatedAwb,
-    courierName: "RapidShyp Courier",
+    shipmentId: meta.shipmentId || shipmentId,
+    awb: meta.awb,
+    courierName: meta.courierName || "RapidShyp",
     status: "AWB_ASSIGNED",
+    raw: data,
   }
 }
 
@@ -167,8 +319,8 @@ export async function testApiConnectivity(): Promise<{
   await auth()
   try {
     const { data, status } = await request<{ message?: string; error?: string }>(
-      "POST",
       "/rapidshyp/apis/v1/track_order",
+      "POST",
       { awb: "AWB000000" }
     )
     const authOk = status !== 401 && status !== 403
