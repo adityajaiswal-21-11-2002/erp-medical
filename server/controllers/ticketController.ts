@@ -7,7 +7,7 @@ export async function listTickets(req: Request, res: Response) {
   if (req.user?.accountType !== "ADMIN") {
     filter.createdBy = req.user?.id
   }
-  const tickets = await Ticket.find(filter).sort({ createdAt: -1 })
+  const tickets = await Ticket.find(filter).sort({ createdAt: -1 }).lean()
   return sendSuccess(res, tickets, "Tickets fetched")
 }
 
@@ -23,6 +23,6 @@ export async function createTicket(req: Request, res: Response) {
 }
 
 export async function updateTicket(req: Request, res: Response) {
-  const ticket = await Ticket.findByIdAndUpdate(req.params.id, req.body, { new: true })
+  const ticket = await Ticket.findByIdAndUpdate(req.params.id, req.body, { new: true }).lean()
   return sendSuccess(res, ticket, "Ticket updated")
 }

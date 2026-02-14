@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react"
 import { Download, Truck } from "lucide-react"
 import { api } from "@/lib/api"
+import { getErrorMessage } from "@/lib/utils"
 import { toast } from "sonner"
 
 import { Timeline } from "@/components/timeline"
@@ -16,6 +17,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 export default function CustomerOrderDetailPage({ params }: { params: { id: string } }) {
   const orderId = params.id
@@ -27,8 +34,8 @@ export default function CustomerOrderDetailPage({ params }: { params: { id: stri
       try {
         const res = await api.get(`/api/orders/${orderId}`)
         setOrder(res.data?.data || null)
-      } catch (error: any) {
-        toast.error(error?.response?.data?.error || "Failed to load order")
+      } catch (err) {
+        toast.error(getErrorMessage(err, "Failed to load order"))
       }
     }
     load().catch(() => undefined)
@@ -46,9 +53,38 @@ export default function CustomerOrderDetailPage({ params }: { params: { id: stri
     if (orderId) loadShipment().catch(() => undefined)
   }, [orderId])
 
+  const downloadOrderSummary = () => {
+    if (!order) return
+    const header = ["Product", "Quantity", "Amount"]
+    const rows = (order.items || []).map((item: any) => [
+      typeof item.product === "string" ? item.product : item.product?.name || "-",
+      String(item.quantity),
+      item.amount ? `₹${item.amount}` : "-",
+    ])
+    const csv = [
+      ["Order", order.orderNumber].join(","),
+      ["Date", order.createdAt ? new Date(order.createdAt).toISOString() : "-"].join(","),
+      ["Net Amount", `₹${order.netAmount || 0}`].join(","),
+      "",
+      [header.join(","), ...rows.map((r) => r.join(","))].join("\n"),
+    ].join("\n")
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.setAttribute("download", `order-${order.orderNumber || orderId}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    toast.success("Order summary downloaded")
+  }
+
   const timeline = [
     { id: "1", label: "Placed", description: "Order submitted", timestamp: order?.createdAt || "-", completed: true },
-    { id: "2", label: "Delivered", description: "Order delivered", timestamp: "-", completed: order?.status === "DELIVERED" },
+    { id: "2", label: "Payment", description: "Payment confirmed", timestamp: order?.createdAt || "-", completed: !!order },
+    { id: "3", label: "Shipped", description: shipment ? `Courier: ${shipment.courierName || "-"}` : "Awaiting shipment", timestamp: shipment?.createdAt || "-", completed: !!shipment },
+    { id: "4", label: "Delivered", description: "Order delivered", timestamp: "-", completed: order?.status === "DELIVERED" },
   ]
 
   return (
@@ -90,10 +126,24 @@ export default function CustomerOrderDetailPage({ params }: { params: { id: stri
               </TableBody>
             </Table>
             <div className="flex justify-end pt-4">
-              <Button variant="outline" className="gap-2">
-                <Download className="w-4 h-4" />
-                Download invoice
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={downloadOrderSummary}
+                      disabled={!order}
+                    >
+                      <Download className="w-4 h-4" />
+                      Download order summary
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Download order details as CSV</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </CardContent>
         </Card>

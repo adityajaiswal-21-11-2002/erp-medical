@@ -51,6 +51,7 @@ export default function DistributorOrderDetailPage({ params }: { params: Promise
   const [shipment, setShipment] = useState<Shipment | null>(null)
   const [loading, setLoading] = useState(true)
   const [tracking, setTracking] = useState(false)
+  const [createShipmentLoading, setCreateShipmentLoading] = useState(false)
 
   const resolvedParams = React.use(params)
   const id = resolvedParams?.id
@@ -105,6 +106,24 @@ export default function DistributorOrderDetailPage({ params }: { params: Promise
       toast.error(e?.response?.data?.error || "Failed to track")
     } finally {
       setTracking(false)
+    }
+  }
+
+  const handleCreateShipment = async () => {
+    if (!orderId) return
+    setCreateShipmentLoading(true)
+    try {
+      await api.post(`/api/shipments/${orderId}/create`, {})
+      toast.success("Shipment created successfully")
+      await loadShipment()
+    } catch (e: unknown) {
+      const msg =
+        e && typeof e === "object" && "response" in e && e.response && typeof e.response === "object" && "data" in e.response && e.response.data && typeof e.response.data === "object" && "error" in e.response.data
+          ? String((e.response.data as { error?: string }).error)
+          : "Failed to create shipment"
+      toast.error(msg)
+    } finally {
+      setCreateShipmentLoading(false)
     }
   }
 
@@ -235,9 +254,26 @@ export default function DistributorOrderDetailPage({ params }: { params: Promise
         </CardHeader>
         <CardContent className="space-y-4">
           {!shipment ? (
-            <p className="text-sm text-muted-foreground">
-              Shipment is created automatically after payment (Shiprocket/RapidShyp). It may appear shortly. Refresh the page to check.
-            </p>
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Shipment is created automatically after payment (Shiprocket/RapidShyp). You can create one manually if it did not appear.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={createShipmentLoading || order?.status === "CANCELLED"}
+                onClick={handleCreateShipment}
+              >
+                {createShipmentLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Creating…
+                  </>
+                ) : (
+                  "Create shipment"
+                )}
+              </Button>
+            </div>
           ) : (
             <>
               <div className="grid gap-4 md:grid-cols-2">

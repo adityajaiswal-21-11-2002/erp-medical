@@ -113,7 +113,7 @@
 ## Known Limitations
 
 - **External APIs:** Tests use mocks (shippingStub, Jest mocks for Razorpay). No live Shiprocket/RapidShyp/Razorpay calls in CI.
-- **Razorpay webhook raw body:** Production should use raw body for signature verification; Express.json() may alter body. Consider `express.raw()` for webhook route.
+- **Razorpay webhook raw body:** Fixed in backend — `express.json({ verify })` preserves raw body for `/webhooks/razorpay` for signature verification. Next.js API routes use `request.text()` and were already correct.
 - **Referral ref code change:** Last ref wins (localStorage overwrites on new ?ref=).
 
 ---

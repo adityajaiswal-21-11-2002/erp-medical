@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Copy, MessageCircle, TrendingUp, Users, Link as LinkIcon, Store, User, Truck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
+import { getErrorMessage } from '@/lib/utils'
 import { toast } from 'sonner'
 
 type ReferralType = 'retailer' | 'customer' | 'distributor'
@@ -21,14 +22,16 @@ const REFERRAL_TYPES: { id: ReferralType; label: string; path: string; icon: typ
 
 export default function AffiliatePage() {
   const [copied, setCopied] = useState<ReferralType | null>(null)
-  const [referralCode, setReferralCode] = useState("REF-XXXX")
+  const [referralCode, setReferralCode] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({ clicks: 0, attributedOrders: 0 })
   const [selectedType, setSelectedType] = useState<ReferralType>('customer')
 
   const getReferralLink = (type: ReferralType) => {
     const base = typeof window !== "undefined" ? window.location.origin : "https://pharmahub.in"
     const config = REFERRAL_TYPES.find((t) => t.id === type)
-    return `${base}${config?.path || '/customer'}?ref=${referralCode}`
+    const code = referralCode || ""
+    return `${base}${config?.path || '/customer'}?ref=${code}`
   }
 
   const handleCopyLink = (type: ReferralType) => {
@@ -41,21 +44,25 @@ export default function AffiliatePage() {
   const affiliateStats = [
     { label: 'Total Clicks', value: stats.clicks, icon: Users },
     { label: 'Conversions', value: stats.attributedOrders, icon: TrendingUp },
-    { label: 'Attributed Sales', value: '₹0', icon: LinkIcon },
-    { label: 'Earnings', value: '₹0', icon: LinkIcon },
+    { label: 'Attributed Sales', value: 'Coming soon', icon: LinkIcon },
+    { label: 'Earnings', value: 'Coming soon', icon: LinkIcon },
   ]
 
   const recentAffiliateOrders: any[] = []
 
   useEffect(() => {
     const load = async () => {
+      setLoading(true)
       try {
         const res = await api.get("/api/referrals/me")
         const data = res.data?.data
-        setReferralCode(data?.refCode || "REF-XXXX")
+        setReferralCode(data?.refCode || null)
         setStats({ clicks: data?.clicks || 0, attributedOrders: data?.attributedOrders || 0 })
-      } catch (error: any) {
-        toast.error(error?.response?.data?.error || "Failed to load referral info")
+      } catch (err) {
+        toast.error(getErrorMessage(err, "Failed to load referral info"))
+        setReferralCode(null)
+      } finally {
+        setLoading(false)
       }
     }
     load().catch(() => undefined)
@@ -97,15 +104,25 @@ export default function AffiliatePage() {
                       </p>
                       <div className="flex gap-2">
                         <Input
-                          value={getReferralLink(t.id)}
+                          value={loading ? "Loading..." : getReferralLink(t.id)}
                           readOnly
+                          placeholder={loading ? "Loading..." : undefined}
                           className="bg-white dark:bg-slate-950 font-mono text-sm"
                         />
-                        <Button onClick={() => handleCopyLink(t.id)} className="shrink-0 gap-2">
+                        <Button
+                          onClick={() => handleCopyLink(t.id)}
+                          disabled={loading || !referralCode}
+                          className="shrink-0 gap-2"
+                        >
                           <Copy className="w-4 h-4" />
                           {copied === t.id ? 'Copied!' : 'Copy'}
                         </Button>
                       </div>
+                      {!loading && !referralCode && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400">
+                          No referral code found. Contact support if you need one.
+                        </p>
+                      )}
                     </div>
                   </TabsContent>
                 ))}
@@ -115,6 +132,7 @@ export default function AffiliatePage() {
                 <Button
                   variant="outline"
                   className="flex-1 bg-transparent gap-2"
+                  disabled={loading || !referralCode}
                   onClick={() => {
                     const link = getReferralLink(selectedType)
                     const wa = `https://wa.me/?text=${encodeURIComponent(link)}`
@@ -127,6 +145,7 @@ export default function AffiliatePage() {
                 <Button
                   variant="outline"
                   className="flex-1 bg-transparent gap-2"
+                  disabled={loading || !referralCode}
                   onClick={() => handleCopyLink(selectedType)}
                 >
                   <LinkIcon className="w-4 h-4" />
@@ -161,24 +180,14 @@ export default function AffiliatePage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Earning Breakdown</CardTitle>
+                <CardDescription className="text-muted-foreground">
+                  Detailed earnings will appear here once payout tracking is available.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">This Month</span>
-                  <span className="font-semibold">₹2,150</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Last Month</span>
-                  <span className="font-semibold">₹1,680</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Earnings</span>
-                  <span className="font-semibold text-emerald-600">₹15,420</span>
-                </div>
-                <div className="flex justify-between pt-2 border-t font-bold">
-                  <span>Available for Payout</span>
-                  <span className="text-emerald-600">₹2,150</span>
-                </div>
+              <CardContent>
+                <p className="text-sm text-muted-foreground py-4 text-center rounded-lg bg-muted/50 border border-dashed border-border">
+                  Coming soon — earnings breakdown and payout history
+                </p>
               </CardContent>
             </Card>
 
@@ -257,6 +266,9 @@ export default function AffiliatePage() {
           <Card>
             <CardHeader>
               <CardTitle>Payouts</CardTitle>
+              <CardDescription>
+                Commission payouts will be available once the payout engine is integrated.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -265,7 +277,9 @@ export default function AffiliatePage() {
                   Commission payouts are processed every month on the 5th. Minimum payout amount: ₹500
                 </p>
               </div>
-              <Button className="w-full">Request Payout</Button>
+              <Button className="w-full" disabled>
+                Request Payout — Coming soon
+              </Button>
             </CardContent>
           </Card>
         </div>

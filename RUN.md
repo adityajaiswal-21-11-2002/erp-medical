@@ -128,7 +128,7 @@ Copy `env.example` to `.env` and set:
 
 - **E2E tests:**  
   `npm run test:e2e`  
-  Uses Playwright. First run: `npx playwright install` to download browsers. Ensure backend and frontend are running (e.g. `npm run dev:all`). Set `E2E_BASE_URL=http://localhost:3000`, `E2E_API_URL=http://localhost:5000`.
+  Uses Playwright. **Prerequisite:** Run `npx playwright install` once to download browser binaries (Chromium, Firefox, WebKit). Then ensure backend and frontend are running (e.g. `npm run dev:all`). Set `E2E_BASE_URL=http://localhost:3000`, `E2E_API_URL=http://localhost:5000`.
 
 - **Test mode / mocks:**  
   Backend tests mock Razorpay (orders.create), shipping (shippingStub). No live API calls. For deterministic seed: `SEED_DETERMINISTIC=1 npm run backend:seed`.

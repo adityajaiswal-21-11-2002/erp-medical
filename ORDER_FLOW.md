@@ -42,7 +42,7 @@ If the shipping provider is not configured or the API call fails, payment verifi
 - **Distributor:** Order detail page (**/distributor/orders/:id**) shows the same shipment block (AWB, courier, status, **Refresh tracking**). If no shipment yet, a message explains it is created automatically after payment.
 - **Customer:** Order detail can show shipment/tracking if the app fetches and displays it.
 
-There is **no manual “Create shipment”** action in the main flow; Admin/Distributor only **view** shipment data. The **Integrations** page (Admin) still has **Test** for Shiprocket and RapidShyp to check connectivity.
+**Manual create shipment:** Admin and Distributor can create a shipment manually if automatic creation failed — use the **Create shipment** button in the Admin order drawer or Distributor order detail. The **Integrations** page (Admin) has **Test** for Shiprocket and RapidShyp to check connectivity.
 
 ---
 
@@ -62,7 +62,7 @@ Customer checkout
 
 Admin / Distributor:
   → View order → see Shipment section (provider, AWB, courier, status)
-  → No manual "Create shipment" step
+  → Create shipment manually if needed (button in drawer / order detail)
 ```
 
 ---
@@ -74,5 +74,5 @@ Admin / Distributor:
 - Razorpay: `server/controllers/razorpayController.ts` (verify + webhook call `createShipmentForOrderIdInternal`)
 - Shipment: `server/controllers/shipmentController.ts` (`createShipmentForOrderIdInternal`, used after payment and by POST `/api/shipments/:orderId/create` for manual retry if needed)
 - Admin orders: `app/admin/orders/page.tsx` (drawer shows shipment)
-- Distributor order detail: `app/distributor/orders/[id]/page.tsx` (shipment display, no create button)
+- Distributor order detail: `app/distributor/orders/[id]/page.tsx` (shipment display, Create shipment button)
 - Integrations (Shiprocket/RapidShyp test): `app/admin/integrations/page.tsx`

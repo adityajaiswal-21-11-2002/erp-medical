@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
+import { getErrorMessage } from "@/lib/utils"
 import { PageHeader } from "@/components/page-header"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent } from "@/components/ui/card"
@@ -21,8 +22,8 @@ export default function DistributorSettlementsPage() {
       try {
         const res = await api.get("/api/distributor/settlements")
         setSettlements(res.data?.data || [])
-      } catch (error: any) {
-        toast.error(error?.response?.data?.error || "Failed to load settlements")
+      } catch (err) {
+        toast.error(getErrorMessage(err, "Failed to load settlements"))
       }
     }
     load().catch(() => undefined)
@@ -32,7 +33,7 @@ export default function DistributorSettlementsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Settlements & Ageing"
-        description="Track outstanding balances and ageing buckets."
+        description="Track outstanding balances and ageing buckets. Stub data — full settlements engine coming soon."
       />
       <Card>
         <CardContent className="pt-6">
@@ -54,8 +55,8 @@ export default function DistributorSettlementsPage() {
               ))}
               {settlements.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground">
-                    No settlements data
+                  <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                    No settlements data. Full settlements integration coming soon.
                   </TableCell>
                 </TableRow>
               )}

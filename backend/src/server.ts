@@ -41,7 +41,17 @@ app.use(
     credentials: true,
   }),
 )
-app.use(express.json({ limit: "10mb" }))
+// Preserve raw body for Razorpay webhook signature verification (express.json alters the body)
+app.use(
+  express.json({
+    limit: "10mb",
+    verify: (req, _res, buf) => {
+      if (req.originalUrl?.includes("/webhooks/razorpay") && buf) {
+        ;(req as { rawBody?: string }).rawBody = buf.toString("utf8")
+      }
+    },
+  }),
+)
 
 app.use(
   rateLimit({

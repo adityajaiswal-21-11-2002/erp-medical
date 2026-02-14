@@ -5,11 +5,13 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
+import { getErrorMessage } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { StatusBadge } from "@/components/status-badge"
-import { Truck } from "lucide-react"
+import { Timeline } from "@/components/timeline"
+import { Truck, Download } from "lucide-react"
 
 type OrderDetail = {
   _id: string
@@ -33,6 +35,7 @@ type Shipment = {
   awb?: string
   courierName?: string
   status: string
+  createdAt?: string
 }
 
 export default function OrderDetailPage() {
@@ -46,8 +49,8 @@ export default function OrderDetailPage() {
       try {
         const res = await api.get(`/api/orders/${orderId}`)
         setOrder(res.data?.data || null)
-      } catch (error: any) {
-        toast.error(error?.response?.data?.error || "Failed to load order")
+      } catch (err) {
+        toast.error(getErrorMessage(err, "Failed to load order"))
       }
     }
     fetchOrder().catch(() => undefined)
@@ -64,6 +67,40 @@ export default function OrderDetailPage() {
     }
     if (orderId) fetchShipment().catch(() => undefined)
   }, [orderId])
+
+  const downloadOrderSummary = () => {
+    if (!order) return
+    const header = ["Product", "Quantity", "Amount"]
+    const rows = (order.items || []).map((item) => [
+      typeof item.product === "string" ? item.product : (item.product as { name?: string })?.name || "-",
+      String(item.quantity),
+      item.amount ? `₹${item.amount}` : "-",
+    ])
+    const csv = [
+      ["Order", order.orderNumber].join(","),
+      ["Date", order.createdAt ? new Date(order.createdAt).toISOString() : "-"].join(","),
+      ["Net Amount", `₹${order.netAmount || 0}`].join(","),
+      "",
+      [header.join(","), ...rows.map((r) => r.join(","))].join("\n"),
+    ].join("\n")
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.setAttribute("download", `order-${order.orderNumber || orderId}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    toast.success("Order summary downloaded")
+  }
+
+  const timelineItems = [
+    { id: "1", label: "Placed", description: "Order submitted", timestamp: order?.createdAt || "-", completed: true },
+    { id: "2", label: "Payment", description: "Payment confirmed", timestamp: order?.createdAt || "-", completed: !!order },
+    { id: "3", label: "Shipped", description: shipment ? `Courier: ${shipment.courierName || "-"}` : "Awaiting shipment", timestamp: shipment?.createdAt || "-", completed: !!shipment },
+    { id: "4", label: "Delivered", description: "Order delivered", timestamp: "-", completed: order?.status === "DELIVERED" },
+  ]
 
   if (!order) {
     return (
@@ -146,20 +183,37 @@ export default function OrderDetailPage() {
             </TableBody>
           </Table>
 
-          <div className="mt-4 space-y-2 text-sm border-t pt-4">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span>₹{order.subtotal || order.netAmount}</span>
+          <div className="mt-4 flex flex-col gap-3">
+            <div className="space-y-2 text-sm border-t pt-4">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>₹{order.subtotal || order.netAmount}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Total GST</span>
+                <span>₹{order.totalGst || 0}</span>
+              </div>
+              <div className="flex justify-between font-bold text-base">
+                <span>Total</span>
+                <span>₹{order.netAmount}</span>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Total GST</span>
-              <span>₹{order.totalGst || 0}</span>
-            </div>
-            <div className="flex justify-between font-bold text-base">
-              <span>Total</span>
-              <span>₹{order.netAmount}</span>
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" className="gap-2" onClick={downloadOrderSummary}>
+                <Download className="w-4 h-4" />
+                Download order summary
+              </Button>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Order Timeline</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Timeline items={timelineItems} />
         </CardContent>
       </Card>
 

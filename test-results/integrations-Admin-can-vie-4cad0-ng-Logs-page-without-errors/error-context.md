@@ -1,0 +1,142 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e7]:
+      - generic [ref=e9]:
+        - img [ref=e11]
+        - generic [ref=e16]:
+          - heading "PharmaHub" [level=2] [ref=e17]
+          - paragraph [ref=e18]: Admin Panel
+      - generic [ref=e20]:
+        - generic [ref=e21]: Management
+        - list [ref=e23]:
+          - listitem [ref=e24]:
+            - link "Dashboard" [ref=e25] [cursor=pointer]:
+              - /url: /admin/dashboard
+              - img [ref=e26]
+              - generic [ref=e31]: Dashboard
+          - listitem [ref=e32]:
+            - link "Users" [ref=e33] [cursor=pointer]:
+              - /url: /admin/users
+              - img [ref=e34]
+              - generic [ref=e39]: Users
+          - listitem [ref=e40]:
+            - link "KYC" [ref=e41] [cursor=pointer]:
+              - /url: /admin/kyc
+              - img [ref=e42]
+              - generic [ref=e46]: KYC
+          - listitem [ref=e47]:
+            - link "Products" [ref=e48] [cursor=pointer]:
+              - /url: /admin/products
+              - img [ref=e49]
+              - generic [ref=e53]: Products
+          - listitem [ref=e54]:
+            - link "Orders" [ref=e55] [cursor=pointer]:
+              - /url: /admin/orders
+              - img [ref=e56]
+              - generic [ref=e59]: Orders
+          - listitem [ref=e60]:
+            - link "Feature Flags" [ref=e61] [cursor=pointer]:
+              - /url: /admin/feature-flags
+              - img [ref=e62]
+              - generic [ref=e65]: Feature Flags
+          - listitem [ref=e66]:
+            - link "ERP Sync" [ref=e67] [cursor=pointer]:
+              - /url: /admin/erp-sync
+              - img [ref=e68]
+              - generic [ref=e73]: ERP Sync
+          - listitem [ref=e74]:
+            - link "Loyalty & Schemes" [ref=e75] [cursor=pointer]:
+              - /url: /admin/loyalty
+              - img [ref=e76]
+              - generic [ref=e78]: Loyalty & Schemes
+          - listitem [ref=e79]:
+            - link "Payments" [ref=e80] [cursor=pointer]:
+              - /url: /admin/payments
+              - img [ref=e81]
+              - generic [ref=e83]: Payments
+          - listitem [ref=e84]:
+            - link "Integrations" [ref=e85] [cursor=pointer]:
+              - /url: /admin/integrations
+              - img [ref=e86]
+              - generic [ref=e88]: Integrations
+          - listitem [ref=e89]:
+            - link "Shipping Logs" [ref=e90] [cursor=pointer]:
+              - /url: /admin/shipping-logs
+              - img [ref=e91]
+              - generic [ref=e96]: Shipping Logs
+          - listitem [ref=e97]:
+            - link "Analytics" [ref=e98] [cursor=pointer]:
+              - /url: /admin/analytics
+              - img [ref=e99]
+              - generic [ref=e101]: Analytics
+          - listitem [ref=e102]:
+            - link "Compliance Logs" [ref=e103] [cursor=pointer]:
+              - /url: /admin/compliance
+              - img [ref=e104]
+              - generic [ref=e107]: Compliance Logs
+          - listitem [ref=e108]:
+            - link "Banners" [ref=e109] [cursor=pointer]:
+              - /url: /admin/banners
+              - img [ref=e110]
+              - generic [ref=e113]: Banners
+          - listitem [ref=e114]:
+            - link "Tickets" [ref=e115] [cursor=pointer]:
+              - /url: /admin/tickets
+              - img [ref=e116]
+              - generic [ref=e123]: Tickets
+          - listitem [ref=e124]:
+            - link "Reports" [ref=e125] [cursor=pointer]:
+              - /url: /admin/reports
+              - img [ref=e126]
+              - generic [ref=e129]: Reports
+      - generic [ref=e130]:
+        - generic [ref=e131]:
+          - generic [ref=e132]: A
+          - generic [ref=e133]:
+            - paragraph [ref=e134]: Admin
+            - paragraph [ref=e135]: admin@demo.com
+        - button "Logout" [ref=e136] [cursor=pointer]:
+          - img
+          - text: Logout
+    - main [ref=e137]:
+      - generic [ref=e138]:
+        - button "Toggle sidebar" [ref=e140] [cursor=pointer]:
+          - img
+          - generic [ref=e141]: Toggle Sidebar
+        - button "Switch to dark mode" [ref=e143] [cursor=pointer]:
+          - img
+      - main [ref=e144]:
+        - generic [ref=e145]:
+          - generic [ref=e146]:
+            - navigation "breadcrumb" [ref=e147]:
+              - list [ref=e148]:
+                - listitem [ref=e149]:
+                  - link "Admin" [ref=e150] [cursor=pointer]:
+                    - /url: /admin
+                - listitem [ref=e151]:
+                  - img [ref=e152]
+                - listitem [ref=e154]:
+                  - link "Shipping Logs" [disabled] [ref=e155]
+            - generic [ref=e156]:
+              - generic [ref=e157]:
+                - heading "Shipping Logs" [level=1] [ref=e158]
+                - paragraph [ref=e159]: Filter by provider and action. View Shiprocket and RapidShyp API activity.
+              - generic [ref=e160]:
+                - button "Refresh shipping logs" [disabled]:
+                  - img
+                  - generic: Refresh
+          - generic [ref=e161]:
+            - combobox [ref=e162] [cursor=pointer]:
+              - generic: All providers
+              - img [ref=e163]
+            - combobox [ref=e165] [cursor=pointer]:
+              - generic: All actions
+              - img [ref=e166]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e229] [cursor=pointer]:
+    - img [ref=e230]
+  - alert [ref=e233]
+```

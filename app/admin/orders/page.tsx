@@ -94,6 +94,7 @@ export default function AdminOrdersPage() {
     courierName?: string
     status?: string
   } | null>(null)
+  const [createShipmentLoading, setCreateShipmentLoading] = useState(false)
 
   const statusForm = useForm<z.infer<typeof statusSchema>>({
     resolver: zodResolver(statusSchema),
@@ -408,7 +409,7 @@ export default function AdminOrdersPage() {
                   Shipment (Shiprocket / RapidShyp)
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2 text-sm">
+              <CardContent className="space-y-3 text-sm">
                 {shipment ? (
                   <div className="grid gap-2 sm:grid-cols-2">
                     <div>
@@ -429,7 +430,44 @@ export default function AdminOrdersPage() {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">Created automatically after payment, or pending.</p>
+                  <>
+                    <p className="text-muted-foreground">
+                      Created automatically after payment, or pending. You can manually create a shipment if it failed.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={createShipmentLoading || selected.status === "CANCELLED"}
+                      className="cursor-pointer transition-all duration-200 disabled:cursor-not-allowed"
+                      onClick={async () => {
+                        if (!selected) return
+                        setCreateShipmentLoading(true)
+                        try {
+                          await api.post(`/api/shipments/${selected._id}/create`, {})
+                          const res = await api.get(`/api/shipments/${selected._id}`)
+                          setShipment(res.data?.data || null)
+                          toast.success("Shipment created successfully")
+                        } catch (err: unknown) {
+                          const msg =
+                            err && typeof err === "object" && "response" in err && err.response && typeof err.response === "object" && "data" in err.response && err.response.data && typeof err.response.data === "object" && "error" in err.response.data
+                              ? String((err.response.data as { error?: string }).error)
+                              : "Failed to create shipment"
+                          toast.error(msg)
+                        } finally {
+                          setCreateShipmentLoading(false)
+                        }
+                      }}
+                    >
+                      {createShipmentLoading ? (
+                        <>
+                          <Loader2 className="size-4 animate-spin" aria-hidden />
+                          Creating…
+                        </>
+                      ) : (
+                        "Create shipment"
+                      )}
+                    </Button>
+                  </>
                 )}
               </CardContent>
             </Card>

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react"
 import { Download } from "lucide-react"
 import { api } from "@/lib/api"
+import { getErrorMessage } from "@/lib/utils"
 import { toast } from "sonner"
 
 import { PageHeader } from "@/components/page-header"
@@ -32,8 +33,8 @@ export default function DistributorInvoicesPage() {
         const res = await api.get("/api/erp/invoices")
         const data = res.data?.data
         setInvoices(Array.isArray(data) ? data : [])
-      } catch (error: any) {
-        toast.error(error?.response?.data?.error || "Failed to load invoices")
+      } catch (err) {
+        toast.error(getErrorMessage(err, "Failed to load invoices"))
         setInvoices([])
       }
     }
@@ -44,7 +45,7 @@ export default function DistributorInvoicesPage() {
     <div className="space-y-6">
       <PageHeader
         title="Invoices"
-        description="Track collections, invoice status, and payment due dates."
+        description="Track collections, invoice status, and payment due dates. Stub data — full invoicing engine coming soon."
         actions={
           <Button variant="outline" className="gap-2">
             <Download className="w-4 h-4" />
@@ -70,7 +71,7 @@ export default function DistributorInvoicesPage() {
               {invoices.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    No invoices found.
+                    No invoices found. Full invoicing integration coming soon.
                   </TableCell>
                 </TableRow>
               ) : (

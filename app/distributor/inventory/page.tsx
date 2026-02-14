@@ -10,6 +10,7 @@ import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { api } from "@/lib/api"
+import { getErrorMessage } from "@/lib/utils"
 import { toast } from "sonner"
 
 interface InventoryRow {
@@ -32,8 +33,8 @@ export default function DistributorInventoryPage() {
     try {
       const res = await api.get("/api/distributor/inventory")
       setInventoryData(res.data?.data || [])
-    } catch (error: any) {
-      toast.error(error?.response?.data?.error || "Failed to load inventory")
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Failed to load inventory"))
     }
   }
 
@@ -50,7 +51,7 @@ export default function DistributorInventoryPage() {
     <div className="space-y-6">
       <PageHeader
         title="Inventory"
-        description="Monitor stock, reservations, and expiry exposure."
+        description="Monitor stock, reservations, and expiry exposure. Stub data — full ERP integration coming soon."
       />
 
       <Card className="border">

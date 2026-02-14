@@ -3,10 +3,11 @@
 import { useState } from "react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
-import { PageHeader } from "@/components/page-header"
+import { getErrorMessage } from "@/lib/utils"
+import { PageShell, PageHeader } from "@/components/ui-kit"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plug, Truck, CreditCard, Loader2 } from "lucide-react"
+import { Truck, CreditCard, Loader2 } from "lucide-react"
 
 type Status = { connected: boolean; provider?: string; error?: string }
 
@@ -21,8 +22,8 @@ export default function IntegrationsPage() {
     try {
       const res = await api.get("/api/shipments/integrations/shiprocket/test")
       setShiprocket(res.data?.data || { connected: false })
-    } catch (e: any) {
-      setShiprocket({ connected: false, error: e?.response?.data?.error || "Request failed" })
+    } catch (e) {
+      setShiprocket({ connected: false, error: getErrorMessage(e, "Request failed") })
     } finally {
       setLoading(null)
     }
@@ -33,8 +34,8 @@ export default function IntegrationsPage() {
     try {
       const res = await api.get("/api/shipments/integrations/rapidshyp/test")
       setRapidshyp(res.data?.data || { connected: false })
-    } catch (e: any) {
-      setRapidshyp({ connected: false, error: e?.response?.data?.error || "Request failed" })
+    } catch (e) {
+      setRapidshyp({ connected: false, error: getErrorMessage(e, "Request failed") })
     } finally {
       setLoading(null)
     }
@@ -45,18 +46,19 @@ export default function IntegrationsPage() {
     try {
       await api.get("/api/payments/razorpay")
       setRazorpay({ connected: true, provider: "RAZORPAY" })
-    } catch (e: any) {
-      setRazorpay({ connected: false, error: e?.response?.data?.error || "Request failed" })
+    } catch (e) {
+      setRazorpay({ connected: false, error: getErrorMessage(e, "Request failed") })
     } finally {
       setLoading(null)
     }
   }
 
   return (
-    <div className="space-y-6">
+    <PageShell maxWidth="content" className="space-y-6">
       <PageHeader
         title="Integrations"
-        description="Shipping and payment provider connectivity (no secrets shown)."
+        subtitle="Shipping and payment provider connectivity (no secrets shown). Test each provider to verify configuration."
+        breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Integrations" }]}
       />
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -141,6 +143,6 @@ export default function IntegrationsPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </PageShell>
   )
 }
