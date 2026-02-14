@@ -37,6 +37,28 @@ export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart()
   const [placing, setPlacing] = useState(false)
   const [razorpayKeyId, setRazorpayKeyId] = useState<string>("")
+  const [preview, setPreview] = useState<{
+    subtotal: number
+    totalGst: number
+    netAmount: number
+    lineItems?: Array<{ productId: string; amount: number }>
+  } | null>(null)
+
+  useEffect(() => {
+    if (items.length === 0) {
+      setPreview(null)
+      return
+    }
+    api
+      .post("/api/orders/preview", {
+        items: items.map((item) => ({ product: item.productId, quantity: item.quantity })),
+      })
+      .then((res) => {
+        const d = res.data?.data
+        if (d) setPreview({ subtotal: d.subtotal, totalGst: d.totalGst, netAmount: d.netAmount, lineItems: d.lineItems })
+      })
+      .catch(() => setPreview(null))
+  }, [items])
 
   useEffect(() => {
     api.get("/api/payments/razorpay/key").then((res) => {
@@ -120,8 +142,8 @@ export default function CheckoutPage() {
     }
   }
 
-  const tax = Math.round(subtotal * 0.05 * 100) / 100
-  const total = subtotal + tax
+  const tax = preview?.totalGst ?? Math.round(subtotal * 0.05 * 100) / 100
+  const total = preview?.netAmount ?? subtotal + tax
 
   return (
     <div className="space-y-6">
@@ -199,7 +221,9 @@ export default function CheckoutPage() {
                         {item.name} x{item.quantity}
                       </TableCell>
                       <TableCell className="text-right">
-                        ₹{item.mrp * item.quantity}
+                        {preview?.lineItems?.find((l) => l.productId === item.productId)
+                          ? `₹${(preview.lineItems.find((l) => l.productId === item.productId)!.amount).toFixed(2)}`
+                          : `₹${(item.mrp * item.quantity).toFixed(2)}`}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -208,14 +232,14 @@ export default function CheckoutPage() {
               <div className="space-y-2 text-sm border-t pt-2">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>₹{subtotal.toFixed(2)}</span>
+                  <span>₹{(preview?.subtotal ?? subtotal).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tax (5%)</span>
+                  <span className="text-muted-foreground">{preview ? "GST" : "Tax (5%)"}</span>
                   <span>₹{tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-base border-t pt-2">
-                  <span>Total</span>
+                  <span>Total (Razorpay will charge this)</span>
                   <span>₹{total.toFixed(2)}</span>
                 </div>
               </div>

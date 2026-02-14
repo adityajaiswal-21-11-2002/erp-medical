@@ -6,6 +6,7 @@ import {
   listShippingLogs,
   testShiprocketConnectivity,
   testRapidShypConnectivity,
+  runShiprocketDiagnostics,
 } from "@/server/controllers/shipmentController"
 import { requireAuth } from "@/server/middleware/auth"
 import { requireAccountType } from "@/server/middleware/accountType"
@@ -33,6 +34,9 @@ export async function GET(request: Request, { params }: { params: Promise<Params
   }
   if (path[0] === "integrations" && path[1] === "shiprocket" && path[2] === "test") {
     return runHandler(request, {}, [...withAuth, requireAccountType("ADMIN"), testShiprocketConnectivity], undefined)
+  }
+  if (path[0] === "integrations" && path[1] === "shiprocket" && path[2] === "diagnose") {
+    return runHandler(request, {}, [...withAuth, requireAccountType("ADMIN"), runShiprocketDiagnostics], undefined)
   }
   if (path[0] === "integrations" && path[1] === "rapidshyp" && path[2] === "test") {
     return runHandler(request, {}, [...withAuth, requireAccountType("ADMIN"), testRapidShypConnectivity], undefined)

@@ -5,12 +5,29 @@ import {
   listOrders,
   setInvoiceNumber,
   setOrderStatus,
+  previewOrderHandler,
 } from "@/server/controllers/orderController"
 import { requireAuth } from "@/server/middleware/auth"
 import { requireRole } from "@/server/middleware/role"
 import { requireAccountType } from "@/server/middleware/accountType"
 import { validate } from "@/server/middleware/validate"
 import { z } from "zod"
+
+const itemsSchema = z.array(
+  z.object({
+    product: z.string().min(1),
+    batch: z.string().optional(),
+    expiry: z.string().optional(),
+    quantity: z.number().min(1),
+    freeQuantity: z.number().optional(),
+    mrp: z.number().optional(),
+    rate: z.number().optional(),
+    discount: z.number().optional(),
+    cgst: z.number().optional(),
+    sgst: z.number().optional(),
+    amount: z.number().optional(),
+  })
+).min(1)
 
 const createSchema = z.object({
   body: z.object({
@@ -20,24 +37,12 @@ const createSchema = z.object({
     gstin: z.string().optional(),
     doctorName: z.string().optional(),
     referralCode: z.string().optional(),
-    items: z
-      .array(
-        z.object({
-          product: z.string().min(1),
-          batch: z.string().optional(),
-          expiry: z.string().optional(),
-          quantity: z.number().min(1),
-          freeQuantity: z.number().optional(),
-          mrp: z.number().optional(),
-          rate: z.number().optional(),
-          discount: z.number().optional(),
-          cgst: z.number().optional(),
-          sgst: z.number().optional(),
-          amount: z.number().optional(),
-        })
-      )
-      .min(1),
+    items: itemsSchema,
   }),
+})
+
+const previewSchema = z.object({
+  body: z.object({ items: itemsSchema }),
 })
 
 const statusSchema = z.object({
@@ -71,6 +76,9 @@ export async function GET(request: Request, { params }: { params: Promise<Params
 
 export async function POST(request: Request, { params }: { params: Promise<Params> }) {
   const { path = [] } = await params
+  if (path.length === 1 && path[0] === "preview") {
+    return runHandler(request, {}, [...withAuth, validate(previewSchema), previewOrderHandler], undefined)
+  }
   if (path.length > 0) return notFound()
   return runHandler(request, {}, [...withAuth, validate(createSchema), createOrderHandler], undefined)
 }

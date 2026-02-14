@@ -1,9 +1,10 @@
 "use client"
 
-import React, { useMemo } from "react"
+import React, { useMemo, useEffect, useState } from "react"
 import Link from "next/link"
 import { Trash2 } from "lucide-react"
 import { useCart } from "@/app/cart-context"
+import { api } from "@/lib/api"
 
 import { QuantityStepper } from "@/components/quantity-stepper"
 import { Button } from "@/components/ui/button"
@@ -19,12 +20,32 @@ import {
 
 export default function CustomerCartPage() {
   const { items, updateQuantity, removeItem, subtotal } = useCart()
+  const [preview, setPreview] = useState<{ subtotal: number; totalGst: number; netAmount: number } | null>(null)
+
+  useEffect(() => {
+    if (items.length === 0) {
+      setPreview(null)
+      return
+    }
+    api
+      .post("/api/orders/preview", {
+        items: items.map((item) => ({ product: item.productId, quantity: item.quantity })),
+      })
+      .then((res) => {
+        const d = res.data?.data
+        if (d) setPreview({ subtotal: d.subtotal, totalGst: d.totalGst, netAmount: d.netAmount })
+      })
+      .catch(() => setPreview(null))
+  }, [items])
 
   const totals = useMemo(() => {
+    if (preview) {
+      return { subtotal: preview.subtotal, gst: preview.totalGst, total: preview.netAmount }
+    }
     const gst = Math.round(subtotal * 0.12)
     const total = subtotal + gst
     return { subtotal, gst, total }
-  }, [subtotal])
+  }, [subtotal, preview])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
@@ -102,7 +123,7 @@ export default function CustomerCartPage() {
               <span>₹{totals.subtotal}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">GST (12%)</span>
+              <span className="text-muted-foreground">{preview ? "GST" : "GST (12%)"}</span>
               <span>₹{totals.gst}</span>
             </div>
             <div className="border-t pt-3 flex items-center justify-between font-semibold">

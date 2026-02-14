@@ -260,3 +260,146 @@ export async function testRapidShypConnectivity(_req: Request, res: Response) {
     )
   }
 }
+
+type DiagnosticCheck = { name: string; pass: boolean; message: string }
+
+export async function runShiprocketDiagnostics(_req: Request, res: Response) {
+  const checks: DiagnosticCheck[] = []
+  const { env } = await import("../config/env")
+
+  // 1. Env vars
+  const hasEmail = !!env.shiprocketEmail?.trim()
+  const hasPassword = !!env.shiprocketPassword?.trim()
+  checks.push({
+    name: "Env SHIPROCKET_EMAIL",
+    pass: hasEmail,
+    message: hasEmail ? "Set" : "Missing or empty",
+  })
+  checks.push({
+    name: "Env SHIPROCKET_PASSWORD",
+    pass: hasPassword,
+    message: hasPassword ? "Set" : "Missing or empty",
+  })
+  const baseUrl = (env.shiprocketBaseUrl || "https://apiv2.shiprocket.in").replace(/\/$/, "")
+  checks.push({
+    name: "Base URL",
+    pass: !!baseUrl,
+    message: baseUrl,
+  })
+
+  // 2. Auth
+  let authOk = false
+  if (hasEmail && hasPassword) {
+    try {
+      const { getShippingProvider } = await import("../services/shipping")
+      const p = getShippingProvider("SHIPROCKET")
+      await p.auth()
+      authOk = true
+      checks.push({ name: "Auth", pass: true, message: "Connected" })
+    } catch (e) {
+      checks.push({
+        name: "Auth",
+        pass: false,
+        message: e instanceof Error ? e.message : String(e),
+      })
+    }
+  } else {
+    checks.push({ name: "Auth", pass: false, message: "Skipped (missing credentials)" })
+  }
+
+  // 3. Sample order payload validation (find an order we might use for shipment)
+  const sampleOrder = await Order.findOne({ status: { $ne: "CANCELLED" } })
+    .populate("items.product")
+    .sort({ createdAt: -1 })
+    .lean()
+  if (sampleOrder) {
+    const ord = sampleOrder as any
+    const items = ord.items || []
+    const netAmount = Number(ord.netAmount) || 0
+    const sellingPrices = items.map((item: any) => {
+      const amt = Number(item.amount)
+      const qty = Number(item.quantity) || 1
+      return qty > 0 ? amt / qty : 0
+    })
+    const anyZeroPrice = sellingPrices.some((p: number) => !p || p <= 0)
+    const validPhone = /^[6-9]\d{9}$/.test(String(ord.customerMobile || "").replace(/\D/g, ""))
+    const hasAddress = !!String(ord.customerAddress || "").trim()
+    const hasName = !!String(ord.customerName || "").trim()
+    const hasOrderNumber = !!String(ord.orderNumber || "").trim()
+
+    checks.push({
+      name: "Sample order: orderNumber",
+      pass: !!hasOrderNumber,
+      message: hasOrderNumber ? `"${ord.orderNumber}"` : "Missing",
+    })
+    checks.push({
+      name: "Sample order: customerName",
+      pass: hasName,
+      message: hasName ? "Present" : "Missing or empty",
+    })
+    checks.push({
+      name: "Sample order: customerMobile (10 digits)",
+      pass: validPhone,
+      message: validPhone ? "Valid" : `Invalid: "${ord.customerMobile || ""}"`,
+    })
+    checks.push({
+      name: "Sample order: customerAddress",
+      pass: hasAddress,
+      message: hasAddress ? "Present" : "Missing or empty",
+    })
+    checks.push({
+      name: "Sample order: netAmount > 0",
+      pass: netAmount > 0,
+      message: netAmount > 0 ? `₹${netAmount}` : `Invalid: ${netAmount}`,
+    })
+    checks.push({
+      name: "Sample order: selling_price > 0 for all items",
+      pass: !anyZeroPrice,
+      message: anyZeroPrice ? "At least one item has zero/negative price" : "OK",
+    })
+  } else {
+    checks.push({
+      name: "Sample order",
+      pass: false,
+      message: "No orders in DB to validate payload",
+    })
+  }
+
+  // 4. Last CREATE_ORDER log
+  const lastCreateLog = await ShippingLog.findOne({
+    provider: "SHIPROCKET",
+    action: "CREATE_ORDER",
+  })
+    .sort({ createdAt: -1 })
+    .lean()
+  if (lastCreateLog) {
+    const log = lastCreateLog as any
+    const failed = log.statusCode && log.statusCode >= 400
+    const errMsg = log.error || (log.response?.message) || (log.response?.status_code ? `HTTP ${log.response.status_code}` : "")
+    checks.push({
+      name: "Last CREATE_ORDER",
+      pass: !failed,
+      message: failed
+        ? `Failed: ${errMsg || JSON.stringify(log.response || {}).slice(0, 120)}`
+        : `Success (${log.statusCode || 200})`,
+    })
+  } else {
+    checks.push({
+      name: "Last CREATE_ORDER",
+      pass: true,
+      message: "No previous attempts logged",
+    })
+  }
+
+  const allPass = checks.every((c) => c.pass)
+  return sendSuccess(
+    res,
+    {
+      provider: "SHIPROCKET",
+      allPass,
+      checks,
+      summary: `${checks.filter((c) => c.pass).length}/${checks.length} checks passed`,
+    },
+    allPass ? "All diagnostics passed" : "Some checks failed",
+  )
+}

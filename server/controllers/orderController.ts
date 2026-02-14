@@ -3,7 +3,7 @@ import Order from "../models/Order"
 import { AppError } from "../middleware/error"
 import { sendSuccess } from "../utils/response"
 import { getPagination } from "../utils/pagination"
-import { createOrder, updateOrderStatus } from "../services/orderService"
+import { createOrder, updateOrderStatus, previewOrder } from "../services/orderService"
 import Referral from "../models/Referral"
 import ReferralAttribution from "../models/ReferralAttribution"
 import AnalyticsEvent from "../models/AnalyticsEvent"
@@ -61,6 +61,11 @@ export async function getOrder(req: Request, res: Response) {
     throw new AppError("Forbidden", 403)
   }
   return sendSuccess(res, order, "Order fetched")
+}
+
+export async function previewOrderHandler(req: Request, res: Response) {
+  const preview = await previewOrder(req.body.items || [])
+  return sendSuccess(res, preview, "Order preview")
 }
 
 export async function createOrderHandler(req: Request, res: Response) {

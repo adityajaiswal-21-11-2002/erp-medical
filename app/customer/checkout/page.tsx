@@ -34,10 +34,27 @@ export default function CustomerCheckoutPage() {
     city: "",
     pincode: "",
   })
+  const [preview, setPreview] = useState<{ netAmount: number } | null>(null)
 
   useEffect(() => {
     setRefCode(localStorage.getItem("ref_code"))
   }, [])
+
+  useEffect(() => {
+    if (items.length === 0) {
+      setPreview(null)
+      return
+    }
+    api
+      .post("/api/orders/preview", {
+        items: items.map((item) => ({ product: item.productId, quantity: item.quantity })),
+      })
+      .then((res) => {
+        const d = res.data?.data
+        if (d?.netAmount != null) setPreview({ netAmount: d.netAmount })
+      })
+      .catch(() => setPreview(null))
+  }, [items])
 
   useEffect(() => {
     api.get("/api/payments/razorpay/key").then((res) => {
@@ -158,9 +175,12 @@ export default function CustomerCheckoutPage() {
           <CardContent className="space-y-4">
             <div className="rounded-lg border border-primary bg-primary/5 p-3 flex items-center gap-3">
               <CreditCard className="w-4 h-4 text-muted-foreground" />
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-medium">Pay with Razorpay</p>
                 <p className="text-xs text-muted-foreground">Card, UPI, Netbanking — payment required to place order</p>
+                {preview && (
+                  <p className="text-sm font-semibold mt-1">Amount to pay: ₹{preview.netAmount.toFixed(2)}</p>
+                )}
               </div>
             </div>
             {refCode && (

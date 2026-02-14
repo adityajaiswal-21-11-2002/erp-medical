@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -7,12 +8,30 @@ import { QuantityStepper } from "@/components/quantity-stepper"
 import { Trash2, ShoppingCart } from "lucide-react"
 import Link from "next/link"
 import { useCart } from "@/app/cart-context"
+import { api } from "@/lib/api"
 
 export default function CartPage() {
   const { items, subtotal, updateQuantity, removeItem } = useCart()
+  const [preview, setPreview] = useState<{ subtotal: number; totalGst: number; netAmount: number } | null>(null)
 
-  const taxAmount = Math.round(subtotal * 0.05 * 100) / 100
-  const total = subtotal + taxAmount
+  useEffect(() => {
+    if (items.length === 0) {
+      setPreview(null)
+      return
+    }
+    api
+      .post("/api/orders/preview", {
+        items: items.map((item) => ({ product: item.productId, quantity: item.quantity })),
+      })
+      .then((res) => {
+        const d = res.data?.data
+        if (d) setPreview({ subtotal: d.subtotal, totalGst: d.totalGst, netAmount: d.netAmount })
+      })
+      .catch(() => setPreview(null))
+  }, [items])
+
+  const taxAmount = preview?.totalGst ?? Math.round(subtotal * 0.05 * 100) / 100
+  const total = preview?.netAmount ?? subtotal + taxAmount
 
   if (items.length === 0) {
     return (
@@ -108,10 +127,10 @@ export default function CartPage() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>₹{subtotal.toFixed(2)}</span>
+                  <span>₹{(preview?.subtotal ?? subtotal).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tax (5%)</span>
+                  <span className="text-muted-foreground">{preview ? "GST" : "Tax (5%)"}</span>
                   <span>₹{taxAmount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t">

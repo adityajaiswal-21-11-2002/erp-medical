@@ -30,6 +30,55 @@ type CreateOrderInput = {
 
 type CreatedOrderDoc = mongoose.Document & { _id: mongoose.Types.ObjectId; netAmount?: number }
 
+export type OrderPreviewResult = {
+  subtotal: number
+  totalDiscount: number
+  totalGst: number
+  netAmount: number
+  lineItems: Array<{ productId: string; quantity: number; rate: number; amount: number }>
+}
+
+/** Preview order total using same calculation as createOrder (no DB writes). */
+export async function previewOrder(items: OrderItemInput[]): Promise<OrderPreviewResult> {
+  let subtotal = 0
+  let totalDiscount = 0
+  let totalGst = 0
+  const lineItems: OrderPreviewResult["lineItems"] = []
+
+  for (const item of items) {
+    const product = await Product.findById(item.product)
+    if (!product) {
+      throw new AppError("Product not found", 404)
+    }
+    if (product.currentStock < item.quantity) {
+      throw new AppError(`Insufficient stock for ${product.name}`, 400)
+    }
+
+    const rate = item.rate ?? product.ptr ?? product.mrp
+    const lineBase = rate * item.quantity
+    const lineDiscount = item.discount ?? 0
+    const taxable = Math.max(lineBase - lineDiscount, 0)
+    const gstRate = (product.gstPercent ?? 0) / 100
+    const gstAmount = taxable * gstRate
+    const cgst = item.cgst ?? gstAmount / 2
+    const sgst = item.sgst ?? gstAmount / 2
+    const amount = item.amount ?? taxable + cgst + sgst
+
+    subtotal += lineBase
+    totalDiscount += lineDiscount
+    totalGst += cgst + sgst
+    lineItems.push({
+      productId: product._id.toString(),
+      quantity: item.quantity,
+      rate,
+      amount,
+    })
+  }
+
+  const netAmount = Math.max(subtotal - totalDiscount + totalGst, 0)
+  return { subtotal, totalDiscount, totalGst, netAmount, lineItems }
+}
+
 /**
  * Order creation and status updates run WITHOUT MongoDB transactions
  * so they work on standalone MongoDB (no replica set required).
