@@ -95,6 +95,7 @@ export default function AdminOrdersPage() {
     status?: string
   } | null>(null)
   const [createShipmentLoading, setCreateShipmentLoading] = useState(false)
+  const [createShipmentProvider, setCreateShipmentProvider] = useState<"SHIPROCKET" | "RAPIDSHYP">("RAPIDSHYP")
 
   const statusForm = useForm<z.infer<typeof statusSchema>>({
     resolver: zodResolver(statusSchema),
@@ -434,16 +435,29 @@ export default function AdminOrdersPage() {
                     <p className="text-muted-foreground">
                       Created automatically after payment, or pending. You can manually create a shipment if it failed.
                     </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={createShipmentLoading || selected.status === "CANCELLED"}
-                      className="cursor-pointer transition-all duration-200 disabled:cursor-not-allowed"
-                      onClick={async () => {
-                        if (!selected) return
-                        setCreateShipmentLoading(true)
-                        try {
-                          await api.post(`/api/shipments/${selected._id}/create`, {})
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Select
+                        value={createShipmentProvider}
+                        onValueChange={(v) => setCreateShipmentProvider(v as "SHIPROCKET" | "RAPIDSHYP")}
+                      >
+                        <SelectTrigger className="w-[140px] h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="RAPIDSHYP">RapidShyp</SelectItem>
+                          <SelectItem value="SHIPROCKET">Shiprocket</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={createShipmentLoading || selected.status === "CANCELLED"}
+                        className="cursor-pointer transition-all duration-200 disabled:cursor-not-allowed"
+                        onClick={async () => {
+                          if (!selected) return
+                          setCreateShipmentLoading(true)
+                          try {
+                            await api.post(`/api/shipments/${selected._id}/create`, { provider: createShipmentProvider })
                           const res = await api.get(`/api/shipments/${selected._id}`)
                           setShipment(res.data?.data || null)
                           toast.success("Shipment created successfully")
@@ -453,20 +467,24 @@ export default function AdminOrdersPage() {
                               ? String((err.response.data as { error?: string }).error)
                               : "Failed to create shipment"
                           toast.error(msg)
-                        } finally {
-                          setCreateShipmentLoading(false)
-                        }
-                      }}
-                    >
-                      {createShipmentLoading ? (
-                        <>
-                          <Loader2 className="size-4 animate-spin" aria-hidden />
-                          Creating…
-                        </>
-                      ) : (
-                        "Create shipment"
-                      )}
-                    </Button>
+                          } finally {
+                            setCreateShipmentLoading(false)
+                          }
+                        }}
+                      >
+                        {createShipmentLoading ? (
+                          <>
+                            <Loader2 className="size-4 animate-spin" aria-hidden />
+                            Creating…
+                          </>
+                        ) : (
+                          "Create shipment"
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Use RapidShyp if Shiprocket returns 403 (e.g. warehouse not configured).
+                    </p>
                   </>
                 )}
               </CardContent>

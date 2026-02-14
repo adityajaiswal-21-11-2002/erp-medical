@@ -10,6 +10,7 @@ import { StatusBadge } from "@/components/status-badge"
 import { Timeline } from "@/components/timeline"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -52,6 +53,7 @@ export default function DistributorOrderDetailPage({ params }: { params: Promise
   const [loading, setLoading] = useState(true)
   const [tracking, setTracking] = useState(false)
   const [createShipmentLoading, setCreateShipmentLoading] = useState(false)
+  const [createShipmentProvider, setCreateShipmentProvider] = useState<"SHIPROCKET" | "RAPIDSHYP">("RAPIDSHYP")
 
   const resolvedParams = React.use(params)
   const id = resolvedParams?.id
@@ -113,7 +115,7 @@ export default function DistributorOrderDetailPage({ params }: { params: Promise
     if (!orderId) return
     setCreateShipmentLoading(true)
     try {
-      await api.post(`/api/shipments/${orderId}/create`, {})
+      await api.post(`/api/shipments/${orderId}/create`, { provider: createShipmentProvider })
       toast.success("Shipment created successfully")
       await loadShipment()
     } catch (e: unknown) {
@@ -258,21 +260,38 @@ export default function DistributorOrderDetailPage({ params }: { params: Promise
               <p className="text-sm text-muted-foreground">
                 Shipment is created automatically after payment (Shiprocket/RapidShyp). You can create one manually if it did not appear.
               </p>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={createShipmentLoading || order?.status === "CANCELLED"}
-                onClick={handleCreateShipment}
-              >
-                {createShipmentLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Creating…
-                  </>
-                ) : (
-                  "Create shipment"
-                )}
-              </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <Select
+                  value={createShipmentProvider}
+                  onValueChange={(v) => setCreateShipmentProvider(v as "SHIPROCKET" | "RAPIDSHYP")}
+                >
+                  <SelectTrigger className="w-[140px] h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="RAPIDSHYP">RapidShyp</SelectItem>
+                    <SelectItem value="SHIPROCKET">Shiprocket</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={createShipmentLoading || order?.status === "CANCELLED"}
+                  onClick={handleCreateShipment}
+                >
+                  {createShipmentLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Creating…
+                    </>
+                  ) : (
+                    "Create shipment"
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Use RapidShyp if Shiprocket returns 403.
+              </p>
             </div>
           ) : (
             <>
