@@ -184,6 +184,8 @@ export async function testApiConnectivity(): Promise<{
 }
 
 export async function cancel(
+  _awbOrShipmentId: string,
+): Promise<{ success: boolean; raw?: Record<string, unknown> }> {
   await auth()
   await logShippingAction({
     provider: "RAPIDSHYP",
