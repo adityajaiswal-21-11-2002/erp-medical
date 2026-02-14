@@ -114,7 +114,16 @@ export async function createShipment(req: Request, res: Response) {
     force,
   })
   if (!result.ok) {
-    throw new AppError(result.error || "Failed to create shipment", 400)
+    let errMsg = result.error || "Failed to create shipment"
+    try {
+      const parsed = JSON.parse(errMsg) as { message?: string; status_code?: number }
+      if (parsed?.message && parsed?.status_code === 403) {
+        errMsg = `Shiprocket 403: ${parsed.message}. Run Admin → Integrations → Diagnose for details.`
+      }
+    } catch {
+      /* use errMsg as-is */
+    }
+    throw new AppError(errMsg, 400)
   }
   return sendSuccess(res, result.shipment, "Shipment created")
 }
@@ -389,6 +398,36 @@ export async function runShiprocketDiagnostics(_req: Request, res: Response) {
       pass: true,
       message: "No previous attempts logged",
     })
+  }
+
+  // 5. Live create order (actually calls Shiprocket create API - reproduces 403)
+  if (authOk) {
+    try {
+      const { testCreateOrder } = await import("../services/shipping/ShiprocketProvider")
+      const live = await testCreateOrder()
+      if (live.ok) {
+        checks.push({
+          name: "Live create order",
+          pass: true,
+          message: "API accepted (test order created in Shiprocket - you may delete it)",
+        })
+      } else {
+        const msg = (live.data as { message?: string })?.message || live.error || JSON.stringify(live.data).slice(0, 100)
+        checks.push({
+          name: "Live create order",
+          pass: false,
+          message: `403/FAIL: ${msg}. Auth works but create/adhoc is blocked. Check: warehouse, API user permissions, account activation.`,
+        })
+      }
+    } catch (e) {
+      checks.push({
+        name: "Live create order",
+        pass: false,
+        message: e instanceof Error ? e.message : String(e),
+      })
+    }
+  } else {
+    checks.push({ name: "Live create order", pass: false, message: "Skipped (auth failed)" })
   }
 
   const allPass = checks.every((c) => c.pass)

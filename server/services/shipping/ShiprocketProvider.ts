@@ -200,6 +200,52 @@ export async function track(awbOrShipmentId: string): Promise<TrackResult> {
   }
 }
 
+/** Test create order API (diagnostic only). Does not persist anything. Uses unique order_id. */
+export async function testCreateOrder(): Promise<{
+  ok: boolean
+  status: number
+  data: unknown
+  error?: string
+}> {
+  const testOrderId = `DIAG-${Date.now()}`
+  const payload = {
+    order_id: testOrderId,
+    order_date: new Date().toISOString().split("T")[0],
+    billing_customer_name: "Diagnostic Test",
+    billing_last_name: "",
+    billing_address: "123 Test Street",
+    billing_address_2: "",
+    billing_city: "Mumbai",
+    billing_pincode: "400001",
+    billing_state: "Maharashtra",
+    billing_country: "India",
+    billing_email: "test@example.com",
+    billing_phone: "9876543210",
+    shipping_is_billing: true,
+    order_items: [{ name: "Test Item", sku: "diag-1", units: 1, selling_price: 100 }],
+    payment_method: "Prepaid",
+    sub_total: 100,
+    length: 10,
+    breadth: 10,
+    height: 5,
+    weight: 1,
+  }
+  try {
+    const { data, status } = await request<Record<string, unknown>>(
+      "/v1/external/orders/create/adhoc",
+      "POST",
+      payload as unknown as Record<string, unknown>
+    )
+    const ok = status >= 200 && status < 300
+    const respData = data as { message?: string; status_code?: number }
+    const error = !ok && respData?.message ? respData.message : undefined
+    return { ok, status: respData?.status_code ?? status, data, error }
+  } catch (e) {
+    const errMsg = e instanceof Error ? e.message : String(e)
+    return { ok: false, status: 403, data: errMsg, error: errMsg }
+  }
+}
+
 export async function cancel(
   awbOrShipmentId: string,
 ): Promise<{ success: boolean; raw?: Record<string, unknown> }> {
