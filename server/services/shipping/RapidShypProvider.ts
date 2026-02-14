@@ -148,6 +148,18 @@ export async function createOrderFromInternal(
     .map((item) => (typeof item.product === "object" && item.product?.name ? item.product.name : "Item"))
     .join(", ")
     .slice(0, 120) || "Item"
+  const orderItems = order.items.map((item, idx) => {
+    const qty = Number(item.quantity) || 1
+    const amount = Number(item.amount) || 0
+    const itemValue = qty > 0 ? amount / qty : amount
+    const name = typeof item.product === "object" && item.product?.name ? item.product.name : `Item ${idx + 1}`
+    return {
+      itemName: name,
+      sku: `item-${idx + 1}`,
+      quantity: qty,
+      itemValue: Number(itemValue.toFixed(2)),
+    }
+  })
   const payload = {
     seller_order_id: order.orderNumber,
     customer_name: order.customerName || "Customer",
@@ -167,6 +179,10 @@ export async function createOrderFromInternal(
     package_total_value: Number(order.netAmount) || 0,
     payment_method: "prepaid",
     total_order_qty: totalQty,
+    // RapidShyp create_order expects this exact field name.
+    orderItems,
+    // Keep optional alias for compatibility with older payload handlers.
+    order_items: orderItems,
   }
   try {
     const { data, status } = await request<Record<string, unknown>>(
