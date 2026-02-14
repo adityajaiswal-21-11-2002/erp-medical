@@ -331,7 +331,9 @@ export async function runShiprocketDiagnostics(_req: Request, res: Response) {
       return qty > 0 ? amt / qty : 0
     })
     const anyZeroPrice = sellingPrices.some((p: number) => !p || p <= 0)
-    const validPhone = /^[6-9]\d{9}$/.test(String(ord.customerMobile || "").replace(/\D/g, ""))
+    let digits = String(ord.customerMobile || "").replace(/\D/g, "")
+    if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1)
+    const validPhone = /^[6-9]\d{9}$/.test(digits)
     const hasAddress = !!String(ord.customerAddress || "").trim()
     const hasName = !!String(ord.customerName || "").trim()
     const hasOrderNumber = !!String(ord.orderNumber || "").trim()

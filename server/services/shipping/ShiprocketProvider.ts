@@ -75,6 +75,12 @@ async function request<T>(
   return { data, status: res.status }
 }
 
+function normalizeIndianPhone(s: string): string {
+  let digits = String(s || "").replace(/\D/g, "")
+  if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1)
+  return digits || String(s || "")
+}
+
 export async function createOrderFromInternal(
   order: InternalOrderForShipping,
 ): Promise<CreateOrderResult> {
@@ -90,7 +96,7 @@ export async function createOrderFromInternal(
     billing_state: "State",
     billing_country: "India",
     billing_email: "order@example.com",
-    billing_phone: order.customerMobile,
+    billing_phone: normalizeIndianPhone(order.customerMobile),
     shipping_is_billing: true,
     order_items: order.items.map((item, idx) => ({
       name: typeof item.product === "object" && item.product?.name ? item.product.name : "Item",
